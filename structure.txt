@@ -25,7 +25,7 @@ subscription-tracker/
 ├── scripts
 │   └── tree.js
 ├── src
-│   ├── App.css
+│   ├── App.cssss
 │   ├── App.tsx
 │   ├── app
 │   │   ├── globals.css
