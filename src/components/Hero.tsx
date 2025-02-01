@@ -17,11 +17,25 @@ const Hero = () => {
         }}
       />
       
-      {/* Subtle center glow */}
+      {/* Strong center glow */}
       <div 
         className="absolute inset-0" 
         style={{
-          background: 'radial-gradient(60% 60% at 50% 50%, rgba(82, 36, 46, 0.1) 0%, transparent 100%)'
+          background: 'radial-gradient(65% 75% at 50% 45%, rgba(82, 36, 46, 0.35) 0%, transparent 100%)'
+        }}
+      />
+      
+      {/* Additional subtle glows */}
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'radial-gradient(70% 35% at 50% 45%, rgba(82, 36, 46, 0.15) 0%, transparent 100%)'
+        }}
+      />
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'radial-gradient(20% 50% at 50% 50%, rgba(82, 36, 46, 0.2) 0%, transparent 100%)'
         }}
       />
       
