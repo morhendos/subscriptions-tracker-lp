@@ -2,6 +2,7 @@
   "git": {
     "deploymentEnabled": {
       "main": true,
+      "feature/update-hero-background": false,
       "other-branch-name": false,
       "another-branch-name": false
     }
