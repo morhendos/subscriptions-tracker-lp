@@ -1,42 +1,64 @@
-'use client';
-
-import CTAButton from "./CTAButton";
-import { Star } from "lucide-react";
+import React from 'react';
+import { Button } from './ui/button';
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0A0A1B] via-[#1A1F2C] to-[#2A2F3C]">
-      <div className="container mx-auto px-4 py-12 text-center relative z-10">
-        <p className="text-[#DAA520] mb-6">Track All Your Subscriptions In One Place</p>
-        <h1 className="text-4xl md:text-7xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight">
-          The world's most{" "}
-          <span className="text-[#DAA520]">powerful</span>{" "}
-          subscription management platform
-        </h1>
-        <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-          Never miss a payment or overpay for subscriptions again. Get complete visibility and control over all your recurring expenses.
-        </p>
-        <CTAButton>Start Free Trial</CTAButton>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-          {[1, 2, 3].map((_, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <div className="flex gap-1 mb-3">
-                {[1, 2, 3, 4, 5].map((_, starIndex) => (
-                  <Star
-                    key={starIndex}
-                    className="w-5 h-5 text-[#4ADE80] fill-[#4ADE80]"
-                  />
-                ))}
-              </div>
-              <p className="text-gray-400 text-sm">
-                "Finally, a solution that helps me keep track of all my subscriptions in one place!"
-              </p>
+    <div className="relative overflow-hidden bg-white dark:bg-gray-900">
+      {/* Background gradient effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 opacity-50" />
+      
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-8 items-center">
+          {/* Text Content */}
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
+              Track Your Subscriptions
+              <span className="block text-purple-600 dark:text-purple-400">Save Money Monthly</span>
+            </h1>
+            <p className="mt-6 text-xl text-gray-600 dark:text-gray-300">
+              Never forget about your subscriptions again. Track, manage, and optimize your recurring expenses in one place.
+            </p>
+            <div className="mt-10 flex gap-4">
+              <Button
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Get Started Free
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-purple-200 hover:border-purple-300 dark:border-purple-800 dark:hover:border-purple-700"
+              >
+                How it Works
+              </Button>
             </div>
-          ))}
+            {/* Social Proof */}
+            <div className="mt-12">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Trusted by companies worldwide
+              </p>
+              <div className="mt-4 flex space-x-8 opacity-75">
+                {/* Replace with actual company logos */}
+                <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Hero Image/Illustration */}
+          <div className="relative lg:col-span-1">
+            <div className="aspect-w-5 aspect-h-4 lg:aspect-w-4 lg:aspect-h-3">
+              <div className="w-full h-full bg-purple-100 dark:bg-purple-900/20 rounded-2xl overflow-hidden">
+                {/* Replace with actual product screenshot/illustration */}
+                <div className="w-full h-full bg-gradient-to-br from-purple-200 to-blue-100 dark:from-purple-800 dark:to-blue-900 animate-pulse rounded-2xl" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
