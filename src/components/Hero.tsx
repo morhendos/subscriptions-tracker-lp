@@ -53,7 +53,7 @@ const Hero = () => {
       {/* Content */}
       <div className="container mx-auto px-4 py-12 text-center relative z-10">
         {/* Logo placement */}
-        <div className="w-full max-w-lg mx-auto mb-12">
+        <div className="w-full max-w-lg mx-auto mb-20">
           <Image
             src="/images/logo-2.png"
             alt="Subscription Tracker"
