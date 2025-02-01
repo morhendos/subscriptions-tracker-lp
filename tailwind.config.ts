@@ -19,7 +19,7 @@ const config = {
     },
     extend: {
       fontFamily: {
-        heading: ['Chakra Petch', 'sans-serif'],
+        heading: ['Syne', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
