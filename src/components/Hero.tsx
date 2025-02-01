@@ -1,3 +1,5 @@
+'use client';
+
 import CTAButton from "./CTAButton";
 import { Star } from "lucide-react";
 
