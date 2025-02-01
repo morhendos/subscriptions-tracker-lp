@@ -67,7 +67,7 @@ const Hero = () => {
               style={{ fontFamily: 'Syne, sans-serif' }} 
               className="text-4xl md:text-6xl font-bold text-white leading-[1.2] tracking-wide"
             >
-              The <span className="text-[#FFD43B]">simplest</span> way to organize
+              The <span className="text-[#FFD43B] font-extrabold">simplest</span> way to organize
               your subscriptions and save money without effort
             </h1>
 
@@ -90,7 +90,7 @@ const Hero = () => {
                   {[1, 2, 3, 4, 5].map((_, starIndex) => (
                     <Star
                       key={starIndex}
-                      className="w-5 h-5 text-[#4ADE80] fill-[#4ADE80]"
+                      className="w-5 h-5 text-[#FFD43B] fill-[#FFD43B]"
                     />
                   ))}
                 </div>
