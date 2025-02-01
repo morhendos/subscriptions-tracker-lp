@@ -58,7 +58,7 @@ const Hero = () => {
           />
         </div>
 
-        <h1 className="font-['Chakra_Petch'] text-4xl md:text-6xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight tracking-wide">
+        <h1 className="font-['Syne'] text-4xl md:text-6xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight tracking-wide">
           The <span className="text-[#FFD43B]">simplest</span> way to organize
           your subscriptions and save money without effort
         </h1>
