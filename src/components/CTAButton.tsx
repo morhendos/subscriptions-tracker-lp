@@ -1,23 +1,20 @@
-'use client';
-
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import React from 'react';
 
 interface CTAButtonProps {
-  className?: string;
   children: React.ReactNode;
+  variant?: 'default' | 'small';
 }
 
-const CTAButton = ({ className, children }: CTAButtonProps) => {
+const CTAButton = ({ children, variant = 'default' }: CTAButtonProps) => {
+  const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors bg-[#FFD43B] hover:bg-[#FFD43B]/90 text-black';
+  const sizeStyles = variant === 'small' 
+    ? 'px-4 py-2 text-sm' 
+    : 'px-8 py-3 text-lg';
+
   return (
-    <Button
-      className={cn(
-        "bg-[#DAA520] hover:bg-[#FFD700] text-[#1A1F2C] font-semibold py-6 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105",
-        className
-      )}
-    >
+    <button className={`${baseStyles} ${sizeStyles}`}>
       {children}
-    </Button>
+    </button>
   );
 };
 
