@@ -13,11 +13,11 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Image
-              src="/images/logo-2.png"
+              src="/images/logo-small.png"
               alt="Subscription Tracker"
-              width={180}
+              width={40}
               height={40}
-              className="h-10 w-auto"
+              className="h-8 w-auto"
             />
           </div>
 
