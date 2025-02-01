@@ -5,7 +5,19 @@ import { Star } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0A0A1B] via-[#1A1F2C] to-[#2A2F3C]">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Dark gradient base */}
+      <div className="absolute inset-0 bg-[#0A0A1B]" />
+      
+      {/* Central glow effect */}
+      <div className="absolute inset-0 bg-gradient-radial from-blue-500/20 via-transparent to-transparent" />
+      
+      {/* Additional color accents */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20" />
+      
+      {/* Subtle noise texture for depth */}
+      <div className="absolute inset-0 opacity-[0.015] pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]"/>
+
       <div className="container mx-auto px-4 py-12 text-center relative z-10">
         <p className="text-[#DAA520] mb-6">Track All Your Subscriptions In One Place</p>
         <h1 className="text-4xl md:text-7xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight">
