@@ -3,6 +3,7 @@
 import CTAButton from "./CTAButton";
 import { Star } from "lucide-react";
 import Header from "./Header";
+import Image from "next/image";
 
 const Hero = () => {
   return (
@@ -48,6 +49,18 @@ const Hero = () => {
 
         {/* Content */}
         <div className="container mx-auto px-4 py-12 text-center relative z-10 mt-20">
+          {/* Logo with reduced size */}
+          <div className="w-full max-w-md mx-auto mb-12">
+            <Image
+              src="/images/logo-2.png"
+              alt="Subscription Tracker"
+              width={400}
+              height={144}
+              priority
+              className="w-full h-auto"
+            />
+          </div>
+
           <h1 style={{ fontFamily: 'Syne, sans-serif' }} className="text-4xl md:text-6xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight tracking-wide">
             The <span className="text-[#FFD43B]">simplest</span> way to organize
             your subscriptions and save money without effort
