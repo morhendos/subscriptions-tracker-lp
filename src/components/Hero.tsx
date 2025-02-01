@@ -63,17 +63,18 @@ const Hero = () => {
 
           {/* Main content with improved spacing */}
           <div className="max-w-[900px] mx-auto space-y-8">
-            <h1 
-              style={{ fontFamily: 'Syne, sans-serif' }} 
+            <h1
+              style={{ fontFamily: "Syne, sans-serif" }}
               className="text-4xl md:text-6xl font-bold text-white leading-[1.2] tracking-wide"
             >
-              The <span className="text-[#FFD43B] font-extrabold">simplest</span> way to organize
-              your subscriptions and save money without effort
+              The{" "}
+              <span className="text-[#f4d461] font-extrabold">simplest</span>{" "}
+              way to organize your subscriptions and save money without effort
             </h1>
 
             <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              Never miss a payment or overpay for subscriptions again. Get complete
-              visibility and control over all your recurring expenses.
+              Never miss a payment or overpay for subscriptions again. Get
+              complete visibility and control over all your recurring expenses.
             </p>
           </div>
 
