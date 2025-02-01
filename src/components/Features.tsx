@@ -1,3 +1,5 @@
+'use client';
+
 import { Card } from "@/components/ui/card";
 import { CreditCard, Bell, PieChart, Settings } from "lucide-react";
 
