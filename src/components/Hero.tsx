@@ -5,7 +5,18 @@ import { Star } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0A0A1B] via-[#1A1F2C] to-[#2A2F3C]">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0A0A1B]">
+      {/* Complex gradient background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A1B] via-[#0A0A1B] to-[#0A0A1B]" />
+        {/* Red glow */}
+        <div className="absolute top-0 left-0 w-1/2 h-full bg-red-900/20 blur-[100px]" />
+        {/* Blue glow */}
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/20 blur-[100px]" />
+        {/* Additional subtle gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A1B] via-transparent to-transparent opacity-60" />
+      </div>
+
       <div className="container mx-auto px-4 py-12 text-center relative z-10">
         <p className="text-[#DAA520] mb-6">Track All Your Subscriptions In One Place</p>
         <h1 className="text-4xl md:text-7xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight">
