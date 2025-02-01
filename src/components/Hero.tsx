@@ -3,6 +3,12 @@
 import CTAButton from "./CTAButton";
 import { Star } from "lucide-react";
 
+const testimonials = [
+  "Finally, a solution that helps me keep track of all my subscriptions in one place!",
+  "Perfect for someone like me who always forgets subscription renewal dates.",
+  "Such a relief to have all my subscriptions organized clearly."
+];
+
 const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0A0A1B]">
@@ -28,7 +34,7 @@ const Hero = () => {
         <CTAButton>Start Free Trial</CTAButton>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-          {[1, 2, 3].map((_, index) => (
+          {testimonials.map((testimonial, index) => (
             <div key={index} className="flex flex-col items-center">
               <div className="flex gap-1 mb-3">
                 {[1, 2, 3, 4, 5].map((_, starIndex) => (
@@ -38,9 +44,7 @@ const Hero = () => {
                   />
                 ))}
               </div>
-              <p className="text-gray-400 text-sm">
-                "Finally, a solution that helps me keep track of all my subscriptions in one place!"
-              </p>
+              <p className="text-gray-400 text-sm">"{testimonial}"</p>
             </div>
           ))}
         </div>
