@@ -8,7 +8,7 @@ subscription-tracker/
 ├── next.config.js
 ├── package-lock.json
 ├── package.json
-├── postcss.config.js
+├── postcss.config.cjs
 ├── public
 │   ├── favicon.ico
 │   ├── images
@@ -37,7 +37,9 @@ subscription-tracker/
 │   ├── components
 │   │   ├── CTAButton.tsx
 │   │   ├── Features.tsx
+│   │   ├── GradientBackground.tsx
 │   │   ├── Hero.tsx
+│   │   ├── TestimonialCard.tsx
 │   │   └── ui
 │   │       ├── accordion.tsx
 │   │       ├── alert-dialog.tsx
@@ -88,6 +90,8 @@ subscription-tracker/
 │   │       ├── toggle.tsx
 │   │       ├── tooltip.tsx
 │   │       └── use-toast.ts
+│   ├── config
+│   │   └── constants.ts
 │   ├── hooks
 │   │   ├── use-mobile.tsx
 │   │   └── use-toast.ts
