@@ -2,18 +2,8 @@
 
 import CTAButton from "./CTAButton";
 import { Star } from "lucide-react";
-import { useEffect } from 'react';
 
 const Hero = () => {
-  // Add prefetch and optimization for SEO
-  useEffect(() => {
-    // Prefetch the trial page
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = '/trial';
-    document.head.appendChild(link);
-  }, []);
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0A0A1B] via-[#1A1F2C] to-[#2A2F3C]">
       <div className="container mx-auto px-4 py-12 text-center relative z-10">
