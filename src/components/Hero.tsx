@@ -45,11 +45,12 @@ const Hero = () => {
         {/* Logo placement */}
         <div className="w-full max-w-lg mx-auto mb-12">
           <Image 
-            src="/logo.svg" 
+            src="/images/logo.png" 
             alt="Subscription Tracker" 
             width={500} 
             height={180}
             priority
+            className="w-full h-auto"
           />
         </div>
 
