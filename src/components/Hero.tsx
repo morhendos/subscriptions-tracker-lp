@@ -2,6 +2,7 @@
 
 import CTAButton from "./CTAButton";
 import { Star } from "lucide-react";
+import Image from 'next/image';
 
 const Hero = () => {
   return (
@@ -41,10 +42,17 @@ const Hero = () => {
       
       {/* Content */}
       <div className="container mx-auto px-4 py-12 text-center relative z-10">
-        <p className="text-[#DAA520] mb-6">Track All Your Subscriptions In One Place</p>
-        <h1 className="text-4xl md:text-7xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight">
-          The <span className="text-[#DAA520]">simplest</span> way to organize your subscriptions and save money without effort
-        </h1>
+        {/* Logo placement */}
+        <div className="w-full max-w-lg mx-auto mb-12">
+          <Image 
+            src="/logo.svg" 
+            alt="Subscription Tracker" 
+            width={500} 
+            height={180}
+            priority
+          />
+        </div>
+
         <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
           Never miss a payment or overpay for subscriptions again. Get complete visibility and control over all your recurring expenses.
         </p>
