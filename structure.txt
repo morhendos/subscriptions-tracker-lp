@@ -4,6 +4,8 @@ subscription-tracker/
 ├── components.json
 ├── eslint.config.js
 ├── index.html
+├── next-env.d.ts
+├── next.config.js
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.js
@@ -19,6 +21,13 @@ subscription-tracker/
 ├── src
 │   ├── App.css
 │   ├── App.tsx
+│   ├── app
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── not-found.tsx
+│   │   ├── page.tsx
+│   │   ├── robots.txt
+│   │   └── sitemap.ts
 │   ├── components
 │   │   ├── CTAButton.tsx
 │   │   ├── Features.tsx
@@ -81,10 +90,8 @@ subscription-tracker/
 │   ├── lib
 │   │   └── utils.ts
 │   ├── main.tsx
-│   ├── pages
-│   │   ├── Index.tsx
-│   │   └── NotFound.tsx
 │   └── vite-env.d.ts
+├── structure.txt
 ├── tailwind.config.ts
 ├── tsconfig.app.json
 ├── tsconfig.json
