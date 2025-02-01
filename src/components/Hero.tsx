@@ -49,8 +49,8 @@ const Hero = () => {
 
         {/* Content */}
         <div className="container mx-auto px-4 py-12 text-center relative z-10 mt-20">
-          {/* Logo with reduced size */}
-          <div className="w-full max-w-md mx-auto mb-12">
+          {/* Logo with more top space */}
+          <div className="w-full max-w-sm mx-auto mb-16 mt-8">
             <Image
               src="/images/logo-2.png"
               alt="Subscription Tracker"
@@ -61,18 +61,29 @@ const Hero = () => {
             />
           </div>
 
-          <h1 style={{ fontFamily: 'Syne, sans-serif' }} className="text-4xl md:text-6xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight tracking-wide">
-            The <span className="text-[#FFD43B]">simplest</span> way to organize
-            your subscriptions and save money without effort
-          </h1>
+          {/* Main content with improved spacing */}
+          <div className="max-w-[900px] mx-auto space-y-8">
+            <h1 
+              style={{ fontFamily: 'Syne, sans-serif' }} 
+              className="text-4xl md:text-6xl font-bold text-white leading-[1.2] tracking-wide"
+            >
+              The <span className="text-[#FFD43B]">simplest</span> way to organize
+              your subscriptions and save money without effort
+            </h1>
 
-          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Never miss a payment or overpay for subscriptions again. Get complete
-            visibility and control over all your recurring expenses.
-          </p>
-          <CTAButton>Get Started</CTAButton>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Never miss a payment or overpay for subscriptions again. Get complete
+              visibility and control over all your recurring expenses.
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+          {/* CTA with more space */}
+          <div className="mt-12">
+            <CTAButton>Get Started</CTAButton>
+          </div>
+
+          {/* Testimonials with more top margin */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24">
             {[1, 2, 3].map((_, index) => (
               <div key={index} className="flex flex-col items-center">
                 <div className="flex gap-1 mb-3">
