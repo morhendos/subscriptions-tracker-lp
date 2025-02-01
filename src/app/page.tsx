@@ -1,6 +1,9 @@
-import { Hero } from '@/components/Hero'
-import { Features } from '@/components/Features'
-import { HowItWorks } from '@/components/HowItWorks'
+import dynamic from 'next/dynamic'
+
+// Dynamically import client components
+const Hero = dynamic(() => import('@/components/Hero'))
+const Features = dynamic(() => import('@/components/Features'))
+const HowItWorks = dynamic(() => import('@/components/HowItWorks'))
 
 export default function Home() {
   return (
