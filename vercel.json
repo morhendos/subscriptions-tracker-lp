@@ -1,7 +1,5 @@
 {
-  "git": {
-    "deploymentEnabled": {
-      "main": true
-    }
-  }
+  "buildCommand": "next build",
+  "devCommand": "next dev",
+  "outputDirectory": ".next"
 }
