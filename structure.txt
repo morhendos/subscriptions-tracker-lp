@@ -98,12 +98,10 @@ subscription-tracker/
 │   ├── index.css
 │   ├── lib
 │   │   └── utils.ts
-│   ├── main.tsx
-│   └── vite-env.d.ts
+│   └── main.tsx
 ├── structure.txt
 ├── tailwind.config.ts
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
-├── vercel.json
-└── vite.config.ts
+└── vercel.json
