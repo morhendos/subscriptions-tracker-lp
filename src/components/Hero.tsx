@@ -1,54 +1,15 @@
 "use client";
 
 import CTAButton from "./CTAButton";
-import { Star } from "lucide-react";
 import Image from "next/image";
-
-const testimonials = [
-  "Made me more mindful about my subscription spending. When you see all the numbers in one place, it really makes you think!",
-  "Having all my subscriptions organized in one list changed everything. Now I know exactly what I'm paying for and when each payment is due.",
-  "As someone who hates spreadsheets, this is exactly what I needed to keep track of my monthly services."
-];
+import GradientBackground from "./GradientBackground";
+import TestimonialCard from "./TestimonialCard";
+import { testimonials } from "@/config/constants";
 
 const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Base dark layer */}
-      <div className="absolute inset-0 bg-[#0A0A1B]" />
-
-      {/* Main gradient effect */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(100deg, rgba(89, 35, 46, 0.7) 0%, rgba(10, 10, 27, 0.9) 45%, rgba(27, 35, 65, 0.7) 100%)",
-        }}
-      />
-
-      {/* Strong center glow */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(65% 75% at 50% 45%, rgba(82, 36, 46, 0.35) 0%, transparent 100%)",
-        }}
-      />
-
-      {/* Additional subtle glows */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(70% 35% at 50% 45%, rgba(82, 36, 46, 0.15) 0%, transparent 100%)",
-        }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(20% 50% at 50% 50%, rgba(82, 36, 46, 0.2) 0%, transparent 100%)",
-        }}
-      />
+      <GradientBackground />
 
       {/* Content */}
       <div className="container mx-auto px-4 py-12 text-center relative z-10">
@@ -77,17 +38,7 @@ const Hero = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <div className="flex gap-1 mb-3">
-                {[1, 2, 3, 4, 5].map((_, starIndex) => (
-                  <Star
-                    key={starIndex}
-                    className="w-5 h-5 text-[#4ADE80] fill-[#4ADE80]"
-                  />
-                ))}
-              </div>
-              <p className="text-gray-400 text-sm">{testimonial}</p>
-            </div>
+            <TestimonialCard key={index} text={testimonial} />
           ))}
         </div>
       </div>
