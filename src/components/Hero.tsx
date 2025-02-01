@@ -5,7 +5,7 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   "Finally, a solution that helps me keep track of all my subscriptions in one place!",
-  "Perfect for someone like me who always forgets subscription renewal dates.",
+  "Seeing all my subscriptions in one view was eye-opening",
   "Such a relief to have all my subscriptions organized clearly."
 ];
 
