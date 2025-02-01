@@ -1,12 +1,11 @@
-import dynamic from 'next/dynamic'
-
-// Dynamically import client components
-const Hero = dynamic(() => import('@/components/Hero'))
+import Hero from '@/components/Hero'
+import Features from '@/components/Features'
 
 export default function Home() {
   return (
     <main className="min-h-screen">
       <Hero />
+      <Features />
     </main>
   )
 }
