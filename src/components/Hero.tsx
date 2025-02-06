@@ -37,8 +37,18 @@ const Hero = () => {
         <CTAButton>Get Started</CTAButton>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-          {testimonials.map((testimonial, index) => (
-            <TestimonialCard key={index} text={testimonial} />
+          {testimonials.map((testimonial) => (
+            <TestimonialCard
+              key={testimonial.id}
+              author={testimonial.author}
+              role={testimonial.role}
+              company={testimonial.company}
+              text={testimonial.text}
+              rating={testimonial.rating}
+              avatarUrl={testimonial.avatarUrl}
+              datePublished={testimonial.datePublished}
+              verified={testimonial.verified}
+            />
           ))}
         </div>
       </div>
