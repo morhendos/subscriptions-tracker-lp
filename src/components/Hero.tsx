@@ -40,14 +40,8 @@ const Hero = () => {
           {testimonials.map((testimonial) => (
             <TestimonialCard
               key={testimonial.id}
-              author={testimonial.author}
-              role={testimonial.role}
-              company={testimonial.company}
               text={testimonial.text}
               rating={testimonial.rating}
-              avatarUrl={testimonial.avatarUrl}
-              datePublished={testimonial.datePublished}
-              verified={testimonial.verified}
             />
           ))}
         </div>
