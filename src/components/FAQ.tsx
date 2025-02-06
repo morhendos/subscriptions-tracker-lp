@@ -32,7 +32,7 @@ const faqData = [
   }
 ];
 
-function FAQ() {
+export default function FAQ() {
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -65,9 +65,7 @@ function FAQ() {
             <Accordion type="single" collapsible>
               {faqData.map((item, index) => (
                 <AccordionItem key={index} value={`item-${index}`}>
-                  <AccordionTrigger>
-                    {item.question}
-                  </AccordionTrigger>
+                  <AccordionTrigger>{item.question}</AccordionTrigger>
                   <AccordionContent>
                     <div className="text-muted-foreground">
                       {item.answer}
@@ -82,5 +80,3 @@ function FAQ() {
     </section>
   );
 }
-
-export default FAQ;
