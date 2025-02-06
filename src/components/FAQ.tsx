@@ -1,14 +1,13 @@
-'use client';
-
-import { Card, CardContent } from './ui/card';
-import { SchemaOrg } from './SchemaOrg';
+import { Card, CardContent } from '@/components/ui/card';
+import { SchemaOrg } from '@/components/SchemaOrg';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from './ui/accordion';
+} from '@/components/ui/accordion';
 
+// FAQ data - could be moved to constants.ts later
 const faqData = [
   {
     question: 'How can I track all my subscriptions in one place?',
@@ -33,7 +32,7 @@ const faqData = [
 ];
 
 export default function FAQ() {
-  // Generate FAQ Schema
+  // Generate FAQ Schema for Schema.org
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
