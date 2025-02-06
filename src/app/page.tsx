@@ -1,18 +1,22 @@
-import dynamic from 'next/dynamic'
-import Hero from '@/components/Hero'
-import Features from '@/components/Features'
-import Testimonials from '@/components/Testimonials'
+import { Suspense } from 'react';
+import Hero from '@/components/Hero';
+import Features from '@/components/Features';
+import Testimonials from '@/components/Testimonials';
+import dynamic from 'next/dynamic';
 
-// Dynamically import the FAQ component with ssr enabled
-const FAQ = dynamic(() => import('@/components/FAQ'), { ssr: true })
+const FAQ = dynamic(() => import('@/components/FAQ'), {
+  loading: () => <div className="py-20">Loading...</div>
+});
 
-export default async function Home() {
+export default function Home() {
   return (
     <main className="min-h-screen">
       <Hero />
       <Features />
       <Testimonials />
-      <FAQ />
+      <Suspense fallback={<div className="py-20">Loading...</div>}>
+        <FAQ />
+      </Suspense>
     </main>
-  )
+  );
 }
