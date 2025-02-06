@@ -3,8 +3,6 @@
 import CTAButton from "./CTAButton";
 import Image from "next/image";
 import GradientBackground from "./GradientBackground";
-import TestimonialCard from "./TestimonialCard";
-import { testimonials } from "@/config/constants";
 
 const Hero = () => {
   return (
@@ -17,7 +15,7 @@ const Hero = () => {
         <div className="w-full max-w-lg mx-auto mb-20">
           <Image
             src="/logo-st.svg"
-            alt="Subscription Tracker"
+            alt="Subscriptions Tracker"
             width={500}
             height={180}
             priority
@@ -35,16 +33,6 @@ const Hero = () => {
           visibility and control over all your recurring expenses.
         </p>
         <CTAButton>Get Started</CTAButton>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-          {testimonials.map((testimonial) => (
-            <TestimonialCard
-              key={testimonial.id}
-              text={testimonial.text}
-              rating={testimonial.rating}
-            />
-          ))}
-        </div>
       </div>
     </section>
   );
