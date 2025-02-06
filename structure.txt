@@ -11,15 +11,7 @@ subscription-tracker/
 ├── postcss.config.cjs
 ├── public
 │   ├── favicon.ico
-│   ├── images
-│   │   ├── logo-2.png
-│   │   ├── logo-white.png
-│   │   ├── logo.png
-│   │   └── logo.webp
-│   ├── logo.svg
-│   ├── lovable-uploads
-│   │   ├── 4305f4d1-3eeb-4c79-a35b-a651c8cb3c0d.png
-│   │   └── db02bbe3-cd65-418d-a000-7b204eff26c4.png
+│   ├── logo-st.svg
 │   ├── og-image.png
 │   └── placeholder.svg
 ├── scripts
