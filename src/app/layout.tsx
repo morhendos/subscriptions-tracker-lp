@@ -11,7 +11,7 @@ import {
 const inter = Inter({ subsets: ['latin'] })
 
 const organizationData = {
-  name: 'Subscription Tracker',
+  name: 'Subscriptions Tracker',
   url: 'https://subscriptions-tracker.com',
   logo: 'https://subscriptions-tracker.com/logo-st.svg',
   sameAs: [
@@ -22,7 +22,7 @@ const organizationData = {
 }
 
 const softwareAppSchema = generateSoftwareAppSchema({
-  name: 'Subscription Tracker',
+  name: 'Subscriptions Tracker',
   description: 'Track and manage all your subscriptions in one place. Never miss a payment or lose track of your monthly expenses.',
   applicationCategory: 'FinanceApplication',
   operatingSystem: 'Web',
@@ -37,7 +37,7 @@ const softwareAppSchema = generateSoftwareAppSchema({
 })
 
 const websiteSchema = generateWebsiteSchema({
-  name: 'Subscription Tracker',
+  name: 'Subscriptions Tracker',
   description: 'The smart way to manage and optimize your subscriptions',
   organization: organizationData
 })
@@ -47,13 +47,13 @@ const organizationSchema = generateOrganizationSchema(organizationData)
 export const metadata: Metadata = {
   metadataBase: new URL('https://subscriptions-tracker.com'),
   title: {
-    default: 'Subscription Tracker - Smart Subscription Management',
-    template: '%s | Subscription Tracker'
+    default: 'Subscriptions Tracker - Smart Subscription Management',
+    template: '%s | Subscriptions Tracker'
   },
   description: 'Track and manage all your subscriptions in one place. Save money, avoid unexpected charges, and get insights into your subscription spending.',
   keywords: [
     'subscription management',
-    'subscription tracker',
+    'subscriptions tracker',
     'recurring payments',
     'subscription organizer',
     'expense tracking',
@@ -63,9 +63,9 @@ export const metadata: Metadata = {
     'personal finance',
     'budget tracking'
   ],
-  authors: [{ name: 'Subscription Tracker Team' }],
-  creator: 'Subscription Tracker',
-  publisher: 'Subscription Tracker',
+  authors: [{ name: 'Subscriptions Tracker Team' }],
+  creator: 'Subscriptions Tracker',
+  publisher: 'Subscriptions Tracker',
   formatDetection: {
     email: false,
     address: false,
@@ -73,22 +73,22 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    title: 'Subscription Tracker - Smart Subscription Management',
+    title: 'Subscriptions Tracker - Smart Subscription Management',
     description: 'Track, manage and optimize your subscriptions. Save money and never miss a payment.',
     url: 'https://subscriptions-tracker.com',
-    siteName: 'Subscription Tracker',
+    siteName: 'Subscriptions Tracker',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Subscription Tracker Dashboard'
+        alt: 'Subscriptions Tracker Dashboard'
       }
     ]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Subscription Tracker - Smart Subscription Management',
+    title: 'Subscriptions Tracker - Smart Subscription Management',
     description: 'Track, manage and optimize your subscriptions. Save money and never miss a payment.',
     images: ['/og-image.png'],
     creator: '@substracker'
