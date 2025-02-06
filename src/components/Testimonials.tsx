@@ -1,10 +1,9 @@
 'use client';
 
 import { Card, CardContent } from './ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Star } from 'lucide-react';
 import { SchemaOrg } from './SchemaOrg';
 import { testimonials, testimonialStats } from '@/config/constants';
-import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function StarRating({ rating }: { rating: number }) {
@@ -27,46 +26,19 @@ function TestimonialCard({ testimonial }: { testimonial: (typeof testimonials)[0
   const reviewSchema = {
     '@context': 'https://schema.org',
     '@type': 'Review',
-    author: {
-      '@type': 'Person',
-      name: testimonial.author
-    },
     reviewBody: testimonial.text,
-    datePublished: testimonial.datePublished,
     reviewRating: {
       '@type': 'Rating',
       ratingValue: testimonial.rating,
       bestRating: '5',
       worstRating: '1'
-    },
-    ...(testimonial.company && {
-      itemReviewed: {
-        '@type': 'Organization',
-        name: testimonial.company
-      }
-    })
+    }
   };
 
   return (
     <Card className="h-full hover:shadow-lg transition-shadow">
       <SchemaOrg schema={reviewSchema} />
       <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={testimonial.avatarUrl} alt={testimonial.author} />
-            <AvatarFallback>
-              {testimonial.author.split(' ').map(n => n[0]).join('')}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold truncate">{testimonial.author}</h3>
-            <p className="text-sm text-muted-foreground truncate">
-              {testimonial.role}
-              {testimonial.company && ` at ${testimonial.company}`}
-            </p>
-          </div>
-        </div>
-        
         <div className="mt-4 mb-3">
           <StarRating rating={testimonial.rating} />
         </div>
@@ -74,33 +46,6 @@ function TestimonialCard({ testimonial }: { testimonial: (typeof testimonials)[0
         <blockquote className="mt-4 text-muted-foreground">
           "{testimonial.text}"
         </blockquote>
-
-        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-          <time dateTime={testimonial.datePublished}>
-            {new Date(testimonial.datePublished).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long'
-            })}
-          </time>
-          {testimonial.verified && (
-            <span className="flex items-center gap-1">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-4 w-4 text-green-500"
-                stroke="currentColor"
-              >
-                <path
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                />
-              </svg>
-              Verified
-            </span>
-          )}
-        </div>
       </CardContent>
     </Card>
   );
