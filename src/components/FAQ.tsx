@@ -32,7 +32,7 @@ const faqData = [
   }
 ];
 
-const FAQ = () => {
+function FAQ() {
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -81,6 +81,6 @@ const FAQ = () => {
       </div>
     </section>
   );
-};
+}
 
 export default FAQ;
