@@ -91,7 +91,6 @@ subscription-tracker/
 │   ├── lib
 │   │   └── utils.ts
 │   └── main.tsx
-├── structure.txt
 ├── tailwind.config.ts
 ├── tsconfig.app.json
 ├── tsconfig.json

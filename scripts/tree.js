@@ -34,4 +34,4 @@ const treeOutput = "subscription-tracker/\n" + generateTree(projectRoot);
 console.log(treeOutput);
 
 // Save to file
-writeFileSync("structure.txt", treeOutput);
+writeFileSync("tree.txt", treeOutput);
