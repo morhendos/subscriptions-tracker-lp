@@ -1,78 +1,118 @@
-# Welcome to your Lovable project
+# Subscription Tracker Landing Page
 
-## Project info
+A modern landing page for the Subscription Tracker application, built with Next.js and optimized for search engines.
 
-**URL**: https://lovable.dev/projects/c14940a9-87a6-4e37-a65d-4189840132f5
+## Features
 
-## How can I edit this code?
+- 🔍 SEO optimized with comprehensive metadata
+- 📱 Fully responsive design
+- 🌙 Dark mode support
+- ⚡ Optimized performance
+- 🤖 Search engine friendly
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- Next.js 14
+- TypeScript
+- React
+- shadcn/ui
+- Tailwind CSS
+- Radix UI primitives
 
-Simply visit the
-[Lovable Project](https://lovable.dev/projects/c14940a9-87a6-4e37-a65d-4189840132f5)
-and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+1. Clone the repository:
+```bash
+git clone https://github.com/morhendos/subscriptions-tracker-lp.git
+```
 
-**Use your preferred IDE**
+2. Install dependencies:
+```bash
+npm install
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push
-changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed -
-[install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Run the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Project Structure
 
-**Use GitHub Codespaces**
+```
+src/
+├── app/                  # Next.js App Router pages
+├── components/          # React components
+├── lib/                 # Utilities and helpers
+├── config/             # Configuration files
+└── types/              # TypeScript type definitions
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once
-  you're done.
+## SEO Features
 
-## What technologies are used for this project?
+- Dynamic metadata generation
+- Schema.org markup
+- XML sitemap
+- Robots.txt configuration
+- OpenGraph and Twitter cards
 
-This project is built with .
+For detailed SEO documentation, see [SEO-IMPROVEMENTS.md](./docs/SEO-IMPROVEMENTS.md).
 
-- next.js
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Components
 
-## How can I deploy this project?
+### Core Components
+- Hero section with CTA
+- Feature highlights
+- Testimonial cards
+- Social proof section
 
-Simply open
-[Lovable](https://lovable.dev/projects/c14940a9-87a6-4e37-a65d-4189840132f5) and
-click on Share -> Publish.
+### UI Components
+We use shadcn/ui components including:
+- Cards
+- Buttons
+- Stars
+- Avatars
 
-## I want to use a custom domain - is that possible?
+## Development
 
-We don't support custom domains (yet). If you want to deploy your project under
-your own domain then we recommend using Netlify. Visit our docs for more
-details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+### Code Style
+- TypeScript for type safety
+- ESLint for code quality
+- Prettier for code formatting
+
+### Branch Strategy
+- `main` - production branch
+- `feature/*` - feature branches
+- `fix/*` - bug fix branches
+
+## Deployment
+
+The site automatically deploys to production when changes are pushed to the main branch.
+
+## Contributing
+
+1. Create a feature branch from `main`
+2. Make your changes
+3. Create a pull request
+4. Request review
+
+## Documentation
+
+- [SEO Improvements](./docs/SEO-IMPROVEMENTS.md)
+- [Component Library](https://ui.shadcn.com/)
+- [Next.js Documentation](https://nextjs.org/docs)
+
+## Environment Variables
+
+```env
+NEXT_PUBLIC_BASE_URL=https://subscriptions-tracker.com
+```
+
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run tree` - Generate directory tree
