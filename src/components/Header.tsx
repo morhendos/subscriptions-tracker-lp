@@ -28,6 +28,21 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      const headerOffset = 80; // Height of the fixed header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <header className={cn(
       'fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ease-in-out',
@@ -51,30 +66,21 @@ export default function Header() {
             <Link 
               href="#features" 
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              onClick={(e) => {
-                e.preventDefault();
-                document.querySelector('#features')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={(e) => scrollToSection(e, 'features')}
             >
               Features
             </Link>
             <Link 
               href="#testimonials" 
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              onClick={(e) => {
-                e.preventDefault();
-                document.querySelector('#testimonials')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={(e) => scrollToSection(e, 'testimonials')}
             >
               Testimonials
             </Link>
             <Link 
               href="#faq" 
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              onClick={(e) => {
-                e.preventDefault();
-                document.querySelector('#faq')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={(e) => scrollToSection(e, 'faq')}
             >
               FAQ
             </Link>
