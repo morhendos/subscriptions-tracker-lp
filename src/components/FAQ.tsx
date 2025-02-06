@@ -12,18 +12,18 @@ import {
 const faqData = [
   {
     question: 'How can I track all my subscriptions in one place?',
-    answer: 'Subscription Tracker makes it easy to manage all your subscriptions in one dashboard. Simply add your subscriptions manually or connect your email to automatically detect them. You\'ll get a clear overview of all recurring payments, due dates, and total monthly costs.'
+    answer: 'Subscriptions Tracker makes it easy to manage all your subscriptions in one dashboard. Simply add your subscriptions manually or connect your email to automatically detect them. You\'ll get a clear overview of all recurring payments, due dates, and total monthly costs.'
   },
   {
-    question: 'How does Subscription Tracker help me save money?',
+    question: 'How does Subscriptions Tracker help me save money?',
     answer: 'We help you save money in multiple ways: by identifying unused or overlapping subscriptions, sending reminders before free trials end, highlighting price increases, and providing spending insights. Our users save an average of $240 per year by optimizing their subscriptions.'
   },
   {
-    question: 'Is my financial information secure with Subscription Tracker?',
+    question: 'Is my financial information secure with Subscriptions Tracker?',
     answer: 'Yes, we take security seriously. We use bank-level encryption (256-bit SSL), never store your full card details, and are SOC 2 Type II certified. We only track subscription amounts and dates, not your actual bank or card transactions.'
   },
   {
-    question: 'What happens when Subscription Tracker detects a price increase?',
+    question: 'What happens when Subscriptions Tracker detects a price increase?',
     answer: 'When we detect a price increase in any of your subscriptions, you\'ll receive an immediate notification via email and in-app alert. We show you the old and new price, percentage increase, and impact on your monthly budget, helping you make informed decisions about your subscriptions.'
   },
   {
