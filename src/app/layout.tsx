@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { SchemaOrg } from '@/components/SchemaOrg'
+import Header from '@/components/Header'
 import { 
   generateSoftwareAppSchema, 
   generateOrganizationSchema, 
@@ -127,7 +128,10 @@ export default function RootLayout({
         <SchemaOrg schema={organizationSchema} />
         <SchemaOrg schema={websiteSchema} />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Header />
+        {children}
+      </body>
     </html>
   )
 }
