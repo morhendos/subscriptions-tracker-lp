@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 function Features() {
   return (
-    <section className="py-20 bg-background">
+    <section className="py-20 bg-background" id="features">
       <div className="container px-4 mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
           Key Features
