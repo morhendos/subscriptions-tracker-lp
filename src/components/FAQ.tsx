@@ -2,8 +2,12 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { SchemaOrg } from '@/components/SchemaOrg';
-import { Fragment } from 'react';
-import * as AccordionPrimitive from '@radix-ui/react-accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const faqData = [
   {
@@ -27,11 +31,6 @@ const faqData = [
     answer: 'Yes, our Family Sharing feature lets you collaborate on subscription management. You can invite family members to view and manage shared subscriptions, split costs, and get notifications. Each member can also maintain their private subscriptions separately.'
   }
 ];
-
-const AccordionRoot = AccordionPrimitive.Root;
-const AccordionItem = AccordionPrimitive.Item;
-const AccordionTrigger = AccordionPrimitive.Trigger;
-const AccordionContent = AccordionPrimitive.Content;
 
 const FAQ = () => {
   const faqSchema = {
@@ -63,20 +62,20 @@ const FAQ = () => {
 
         <Card className="max-w-3xl mx-auto">
           <CardContent className="p-6">
-            <AccordionRoot type="single" collapsible>
+            <Accordion type="single" collapsible>
               {faqData.map((item, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-b last:border-b-0">
-                  <AccordionTrigger className="flex w-full justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180">
-                    <span className="text-left">{item.question}</span>
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger>
+                    {item.question}
                   </AccordionTrigger>
-                  <AccordionContent className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-                    <div className="pb-4 pt-0 text-muted-foreground">
+                  <AccordionContent>
+                    <div className="text-muted-foreground">
                       {item.answer}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
               ))}
-            </AccordionRoot>
+            </Accordion>
           </CardContent>
         </Card>
       </div>
