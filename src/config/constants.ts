@@ -9,7 +9,6 @@ export interface Testimonial {
   rating: number;
   avatarUrl?: string;
   datePublished: string;
-  verified: boolean;
 }
 
 export const testimonials: Testimonial[] = [
@@ -21,8 +20,7 @@ export const testimonials: Testimonial[] = [
     text: 'Made me more mindful about my subscriptions. When you see all the numbers in one place, it really makes you think!',
     rating: 5,
     avatarUrl: '/testimonials/sarah.jpg',
-    datePublished: '2025-01-15',
-    verified: true
+    datePublished: '2025-01-15'
   },
   {
     id: '2',
@@ -32,8 +30,7 @@ export const testimonials: Testimonial[] = [
     text: 'Having all my subscriptions organized in one list changed everything. Now I know exactly what I\'m paying for and when each payment is due.',
     rating: 5,
     avatarUrl: '/testimonials/michael.jpg',
-    datePublished: '2025-01-20',
-    verified: true
+    datePublished: '2025-01-20'
   },
   {
     id: '3',
@@ -42,8 +39,7 @@ export const testimonials: Testimonial[] = [
     text: 'As someone who hates spreadsheets, this is exactly what I needed to keep track of my monthly services.',
     rating: 5,
     avatarUrl: '/testimonials/emma.jpg',
-    datePublished: '2025-01-25',
-    verified: true
+    datePublished: '2025-01-25'
   }
 ];
 
