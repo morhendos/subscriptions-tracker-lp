@@ -13,7 +13,6 @@ interface TestimonialCardProps {
   rating?: number;
   avatarUrl?: string;
   datePublished?: string;
-  verified?: boolean;
 }
 
 export default function TestimonialCard({ 
@@ -23,7 +22,6 @@ export default function TestimonialCard({
   company,
   rating = 5,
   avatarUrl,
-  verified,
   datePublished
 }: TestimonialCardProps) {
   // Basic version for simple testimonials
@@ -82,34 +80,16 @@ export default function TestimonialCard({
           "{text}"
         </blockquote>
 
-        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-          {datePublished && (
+        {datePublished && (
+          <div className="mt-4 flex items-center text-sm text-muted-foreground">
             <time dateTime={datePublished}>
               {new Date(datePublished).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long'
               })}
             </time>
-          )}
-          {verified && (
-            <span className="flex items-center gap-1">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-4 w-4 text-green-500"
-                stroke="currentColor"
-              >
-                <path
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                />
-              </svg>
-              Verified
-            </span>
-          )}
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
