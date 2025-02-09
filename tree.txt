@@ -30,8 +30,11 @@ subscription-tracker/
 │   │   └── sitemap.ts
 │   ├── components
 │   │   ├── CTAButton.tsx
+│   │   ├── FAQ.tsx
 │   │   ├── Features.tsx
+│   │   ├── Footer.tsx
 │   │   ├── GradientBackground.tsx
+│   │   ├── Header.tsx
 │   │   ├── Hero.tsx
 │   │   ├── SchemaOrg.tsx
 │   │   ├── TestimonialCard.tsx
