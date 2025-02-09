@@ -1,7 +1,6 @@
 "use client";
 
 import CTAButton from "./CTAButton";
-import Image from "next/image";
 import GradientBackground from "./GradientBackground";
 
 const Hero = () => {
@@ -11,27 +10,16 @@ const Hero = () => {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-12 text-center relative z-10">
-        {/* Logo placement */}
-        <div className="w-full max-w-lg mx-auto mb-20">
-          <Image
-            src="/logo-st.svg"
-            alt="Subscriptions Tracker"
-            width={500}
-            height={180}
-            priority
-            className="w-full h-auto"
-          />
-        </div>
+        <p className="text-xl text-gray-400 mb-6 max-w-2xl mx-auto">
+          Never miss a payment or overpay for subscriptions again. Get complete
+          visibility and control over all your recurring expenses.
+        </p>
 
-        <h1 className="font-heading text-4xl md:text-6xl font-bold mb-6 text-white max-w-5xl mx-auto leading-tight tracking-wide">
+        <h1 className="font-heading text-4xl md:text-6xl font-bold mb-10 text-white max-w-5xl mx-auto leading-tight tracking-wide">
           The <span className="text-[#eaac2f]">simplest</span> way to organize
           your subscriptions and save money without effort
         </h1>
 
-        <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-          Never miss a payment or overpay for subscriptions again. Get complete
-          visibility and control over all your recurring expenses.
-        </p>
         <CTAButton>Get Started</CTAButton>
       </div>
     </section>
