@@ -85,7 +85,7 @@ export const pricingTiers: PricingTier[] = [
     id: 'lifetime',
     name: 'Lifetime',
     description: 'One-time payment, forever access',
-    price: 49,
+    price: 9.99,
     popular: true,
     features: [
       { ...pricingFeatures.unlimitedSubscriptions, name: 'Unlimited subscriptions', description: 'Track as many subscriptions as you want', included: true },
