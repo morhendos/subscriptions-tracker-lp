@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { SchemaOrg } from '@/components/SchemaOrg'
 import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 import { 
   generateSoftwareAppSchema, 
   generateOrganizationSchema, 
@@ -129,8 +130,13 @@ export default function RootLayout({
         <SchemaOrg schema={websiteSchema} />
       </head>
       <body className={inter.className}>
-        <Header />
-        {children}
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <div className="flex-grow">
+            {children}
+          </div>
+          <Footer />
+        </div>
       </body>
     </html>
   )
