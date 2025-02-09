@@ -35,16 +35,6 @@ export const pricingFeatures = {
     description: 'Track as many subscriptions as you want',
     included: false
   },
-  advancedAnalytics: {
-    name: 'Advanced analytics',
-    description: 'Detailed insights and forecasting',
-    included: false
-  },
-  priceTracking: {
-    name: 'Price increase alerts',
-    description: 'Get notified of any price changes',
-    included: false
-  },
   customCategories: {
     name: 'Custom categories',
     description: 'Organize subscriptions your way',
@@ -73,8 +63,6 @@ export const pricingTiers: PricingTier[] = [
       pricingFeatures.emailReminders,
       pricingFeatures.spendingAnalytics,
       { ...pricingFeatures.familySharing, included: false },
-      { ...pricingFeatures.advancedAnalytics, included: false },
-      { ...pricingFeatures.priceTracking, included: false },
       { ...pricingFeatures.customCategories, included: false },
       { ...pricingFeatures.budgetAlerts, included: false },
       { ...pricingFeatures.prioritySupport, included: false }
@@ -90,10 +78,8 @@ export const pricingTiers: PricingTier[] = [
     features: [
       { ...pricingFeatures.unlimitedSubscriptions, name: 'Unlimited subscriptions', description: 'Track as many subscriptions as you want', included: true },
       { ...pricingFeatures.emailReminders, name: 'Advanced notifications', description: 'Email, SMS, and custom reminders', included: true },
-      { ...pricingFeatures.spendingAnalytics, name: 'Advanced analytics', description: 'Detailed spending insights and reports', included: true },
+      { ...pricingFeatures.spendingAnalytics, name: 'Monthly insights', description: 'See your spending trends', included: true },
       { ...pricingFeatures.familySharing, included: true },
-      { ...pricingFeatures.advancedAnalytics, included: true },
-      { ...pricingFeatures.priceTracking, included: true },
       { ...pricingFeatures.customCategories, included: true },
       { ...pricingFeatures.budgetAlerts, included: true },
       { ...pricingFeatures.prioritySupport, included: true }
