@@ -128,13 +128,6 @@ export default function PricingSection() {
             />
           ))}
         </div>
-
-        <div className="mt-16 text-center">
-          <p className="text-sm text-muted-foreground">
-            Need a custom enterprise plan?{' '}
-            <a href="#" className="text-primary hover:underline">Contact our sales team</a>
-          </p>
-        </div>
       </div>
     </section>
   );
