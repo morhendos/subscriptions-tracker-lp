@@ -66,6 +66,13 @@ export default function Header() {
               Features
             </Link>
             <Link 
+              href="#pricing" 
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              onClick={(e) => scrollToSection(e, 'pricing')}
+            >
+              Pricing
+            </Link>
+            <Link 
               href="#testimonials" 
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
               onClick={(e) => scrollToSection(e, 'testimonials')}

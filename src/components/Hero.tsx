@@ -2,6 +2,7 @@
 
 import CTAButton from "./CTAButton";
 import GradientBackground from "./GradientBackground";
+import HeroTestimonials from "./HeroTestimonials";
 
 const Hero = () => {
   return (
@@ -21,6 +22,8 @@ const Hero = () => {
         </h1>
 
         <CTAButton>Get Started</CTAButton>
+
+        <HeroTestimonials />
       </div>
     </section>
   );
