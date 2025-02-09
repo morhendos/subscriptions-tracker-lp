@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { pricingTiers } from '@/config/pricing';
 import type { PricingTier } from '@/config/pricing';
+import { SchemaOrg } from '@/components/SchemaOrg';
 
 function PricingCard({ tier, isYearly }: { tier: PricingTier; isYearly: boolean }) {
   const price = isYearly ? tier.yearlyPrice : tier.monthlyPrice;
@@ -88,8 +89,32 @@ function PricingCard({ tier, isYearly }: { tier: PricingTier; isYearly: boolean 
 export default function PricingSection() {
   const [isYearly, setIsYearly] = useState(true);
 
+  // Generate schema for pricing section
+  const pricingSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'Subscriptions Tracker',
+    description: 'Subscription management and tracking service',
+    offers: {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'USD',
+      lowPrice: 0,
+      highPrice: 299.99,
+      offerCount: pricingTiers.length,
+      offers: pricingTiers.map(tier => ({
+        '@type': 'Offer',
+        name: tier.name,
+        price: isYearly ? tier.yearlyPrice : tier.monthlyPrice,
+        priceCurrency: 'USD',
+        description: tier.description,
+        priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]
+      }))
+    }
+  };
+
   return (
     <section className="py-20 bg-background" id="pricing">
+      <SchemaOrg schema={pricingSchema} />
       <div className="container px-4 mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
