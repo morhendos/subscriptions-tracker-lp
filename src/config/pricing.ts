@@ -8,8 +8,7 @@ export interface PricingTier {
   id: string;
   name: string;
   description: string;
-  monthlyPrice: number;
-  yearlyPrice: number;
+  price: number;
   features: PricingFeature[];
   popular?: boolean;
   ctaText: string;
@@ -17,53 +16,48 @@ export interface PricingTier {
 
 export const pricingFeatures = {
   unlimitedSubscriptions: {
-    name: 'Unlimited subscriptions',
-    description: 'Track as many subscriptions as you want',
+    name: 'Up to 5 subscriptions',
+    description: 'Track your most important subscriptions',
     included: true
   },
   emailReminders: {
-    name: 'Email reminders',
-    description: 'Get notified before payments and trial ends',
+    name: 'Basic email reminders',
+    description: 'Get notified before payments',
     included: true
   },
   spendingAnalytics: {
-    name: 'Spending analytics',
-    description: 'Detailed insights into your subscription costs',
-    included: true
-  },
-  priceTracking: {
-    name: 'Price increase tracking',
-    description: 'Get alerted when subscription prices change',
+    name: 'Basic analytics',
+    description: 'See your monthly spending',
     included: true
   },
   familySharing: {
-    name: 'Family sharing',
-    description: 'Share subscriptions with family members',
+    name: 'Unlimited subscriptions',
+    description: 'Track as many subscriptions as you want',
+    included: false
+  },
+  advancedAnalytics: {
+    name: 'Advanced analytics',
+    description: 'Detailed insights and forecasting',
+    included: false
+  },
+  priceTracking: {
+    name: 'Price increase alerts',
+    description: 'Get notified of any price changes',
     included: false
   },
   customCategories: {
     name: 'Custom categories',
-    description: 'Create your own subscription categories',
+    description: 'Organize subscriptions your way',
     included: false
   },
   budgetAlerts: {
     name: 'Budget alerts',
-    description: 'Get notified when approaching budget limits',
+    description: 'Stay within your spending limits',
     included: false
   },
   prioritySupport: {
     name: 'Priority support',
     description: '24/7 priority customer support',
-    included: false
-  },
-  dataExport: {
-    name: 'Data export',
-    description: 'Export your data in CSV or PDF format',
-    included: false
-  },
-  apiAccess: {
-    name: 'API access',
-    description: 'Access our API for custom integrations',
     included: false
   }
 };
@@ -72,62 +66,38 @@ export const pricingTiers: PricingTier[] = [
   {
     id: 'free',
     name: 'Free',
-    description: 'Perfect for getting started with subscription tracking',
-    monthlyPrice: 0,
-    yearlyPrice: 0,
+    description: 'Perfect for getting started',
+    price: 0,
     features: [
       pricingFeatures.unlimitedSubscriptions,
       pricingFeatures.emailReminders,
-      { ...pricingFeatures.spendingAnalytics, included: false },
-      { ...pricingFeatures.priceTracking, included: false },
+      pricingFeatures.spendingAnalytics,
       { ...pricingFeatures.familySharing, included: false },
+      { ...pricingFeatures.advancedAnalytics, included: false },
+      { ...pricingFeatures.priceTracking, included: false },
       { ...pricingFeatures.customCategories, included: false },
       { ...pricingFeatures.budgetAlerts, included: false },
-      { ...pricingFeatures.prioritySupport, included: false },
-      { ...pricingFeatures.dataExport, included: false },
-      { ...pricingFeatures.apiAccess, included: false }
+      { ...pricingFeatures.prioritySupport, included: false }
     ],
-    ctaText: 'Get Started'
+    ctaText: 'Get Started Free'
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    description: 'Best for individuals and families',
-    monthlyPrice: 9.99,
-    yearlyPrice: 99.99,
+    id: 'lifetime',
+    name: 'Lifetime',
+    description: 'One-time payment, forever access',
+    price: 49,
     popular: true,
     features: [
-      pricingFeatures.unlimitedSubscriptions,
-      pricingFeatures.emailReminders,
+      { ...pricingFeatures.unlimitedSubscriptions, name: 'Unlimited subscriptions', description: 'Track as many subscriptions as you want' },
+      { ...pricingFeatures.emailReminders, name: 'Advanced notifications', description: 'Email, SMS, and custom reminders' },
       pricingFeatures.spendingAnalytics,
-      pricingFeatures.priceTracking,
       pricingFeatures.familySharing,
+      pricingFeatures.advancedAnalytics,
+      pricingFeatures.priceTracking,
       pricingFeatures.customCategories,
       pricingFeatures.budgetAlerts,
-      { ...pricingFeatures.prioritySupport, included: false },
-      { ...pricingFeatures.dataExport, included: false },
-      { ...pricingFeatures.apiAccess, included: false }
+      pricingFeatures.prioritySupport
     ],
-    ctaText: 'Try Pro Free'
-  },
-  {
-    id: 'business',
-    name: 'Business',
-    description: 'For teams and businesses of any size',
-    monthlyPrice: 29.99,
-    yearlyPrice: 299.99,
-    features: [
-      pricingFeatures.unlimitedSubscriptions,
-      pricingFeatures.emailReminders,
-      pricingFeatures.spendingAnalytics,
-      pricingFeatures.priceTracking,
-      pricingFeatures.familySharing,
-      pricingFeatures.customCategories,
-      pricingFeatures.budgetAlerts,
-      pricingFeatures.prioritySupport,
-      pricingFeatures.dataExport,
-      pricingFeatures.apiAccess
-    ],
-    ctaText: 'Contact Sales'
+    ctaText: 'Get Lifetime Access'
   }
 ];
