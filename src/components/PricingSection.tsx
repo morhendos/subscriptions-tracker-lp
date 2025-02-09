@@ -91,7 +91,7 @@ export default function PricingSection() {
       '@type': 'AggregateOffer',
       priceCurrency: 'USD',
       lowPrice: 0,
-      highPrice: 49,
+      highPrice: 9.99,
       offerCount: pricingTiers.length,
       offers: pricingTiers.map(tier => ({
         '@type': 'Offer',
