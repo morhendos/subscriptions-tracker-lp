@@ -51,7 +51,7 @@ export const pricingFeatures = {
     included: false
   },
   budgetAlerts: {
-    name: 'Budget alerts',
+    name: 'Smart budget alerts',
     description: 'Stay within your spending limits',
     included: false
   },
@@ -88,15 +88,15 @@ export const pricingTiers: PricingTier[] = [
     price: 49,
     popular: true,
     features: [
-      { ...pricingFeatures.unlimitedSubscriptions, name: 'Unlimited subscriptions', description: 'Track as many subscriptions as you want' },
-      { ...pricingFeatures.emailReminders, name: 'Advanced notifications', description: 'Email, SMS, and custom reminders' },
-      pricingFeatures.spendingAnalytics,
-      pricingFeatures.familySharing,
-      pricingFeatures.advancedAnalytics,
-      pricingFeatures.priceTracking,
-      pricingFeatures.customCategories,
-      pricingFeatures.budgetAlerts,
-      pricingFeatures.prioritySupport
+      { ...pricingFeatures.unlimitedSubscriptions, name: 'Unlimited subscriptions', description: 'Track as many subscriptions as you want', included: true },
+      { ...pricingFeatures.emailReminders, name: 'Advanced notifications', description: 'Email, SMS, and custom reminders', included: true },
+      { ...pricingFeatures.spendingAnalytics, name: 'Advanced analytics', description: 'Detailed spending insights and reports', included: true },
+      { ...pricingFeatures.familySharing, included: true },
+      { ...pricingFeatures.advancedAnalytics, included: true },
+      { ...pricingFeatures.priceTracking, included: true },
+      { ...pricingFeatures.customCategories, included: true },
+      { ...pricingFeatures.budgetAlerts, included: true },
+      { ...pricingFeatures.prioritySupport, included: true }
     ],
     ctaText: 'Get Lifetime Access'
   }
