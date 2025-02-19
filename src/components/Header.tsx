@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,6 +41,20 @@ export default function Header() {
     }
   };
 
+  // Helper function to determine link behavior based on current page
+  const getNavigationProps = (sectionId: string) => {
+    if (isHomePage) {
+      return {
+        href: `#${sectionId}`,
+        onClick: (e: React.MouseEvent<HTMLAnchorElement>) => scrollToSection(e, sectionId)
+      };
+    }
+    return {
+      href: `/#${sectionId}`,
+      // No onClick handler for absolute links to homepage sections
+    };
+  };
+
   return (
     <header
       className={cn(
@@ -63,33 +80,40 @@ export default function Header() {
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link
-              href="#features"
+              {...getNavigationProps("features")}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              onClick={(e) => scrollToSection(e, "features")}
             >
               Features
             </Link>
 
             <Link
-              href="#testimonials"
+              {...getNavigationProps("testimonials")}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              onClick={(e) => scrollToSection(e, "testimonials")}
             >
               Testimonials
             </Link>
+            
             <Link
-              href="#faq"
+              {...getNavigationProps("faq")}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              onClick={(e) => scrollToSection(e, "faq")}
             >
               FAQ
             </Link>
+            
+            <Link
+              href="/pricing"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              Pricing
+            </Link>
+            
             <Link
               href="https://app.subscriptions-tracker.com/login"
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Login
             </Link>
+            
             <Button asChild>
               <Link href="https://app.subscriptions-tracker.com/signup">
                 Get Started
