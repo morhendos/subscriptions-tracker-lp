@@ -3,6 +3,9 @@ subscription-tracker/
 ├── bun.lockb
 ├── components.json
 ├── docs
+│   ├── COMPONENTS.md
+│   ├── CONTRIBUTING.md
+│   ├── ROADMAP.md
 │   └── SEO-IMPROVEMENTS.md
 ├── eslint.config.js
 ├── index.html
@@ -26,6 +29,10 @@ subscription-tracker/
 │   │   ├── layout.tsx
 │   │   ├── not-found.tsx
 │   │   ├── page.tsx
+│   │   ├── pricing
+│   │   │   └── page.tsx
+│   │   ├── privacy
+│   │   │   └── page.tsx
 │   │   ├── robots.ts
 │   │   └── sitemap.ts
 │   ├── components
@@ -36,6 +43,8 @@ subscription-tracker/
 │   │   ├── GradientBackground.tsx
 │   │   ├── Header.tsx
 │   │   ├── Hero.tsx
+│   │   ├── HeroTestimonials.tsx
+│   │   ├── PricingSection.tsx
 │   │   ├── SchemaOrg.tsx
 │   │   ├── TestimonialCard.tsx
 │   │   ├── Testimonials.tsx
@@ -90,7 +99,8 @@ subscription-tracker/
 │   │       ├── tooltip.tsx
 │   │       └── use-toast.ts
 │   ├── config
-│   │   └── constants.ts
+│   │   ├── constants.ts
+│   │   └── pricing.ts
 │   ├── hooks
 │   │   ├── use-mobile.tsx
 │   │   └── use-toast.ts
