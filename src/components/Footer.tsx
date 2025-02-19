@@ -51,9 +51,6 @@ export default function Footer() {
                 <Link href="/pricing" className="text-muted-foreground hover:text-primary">Pricing</Link>
               </li>
               <li>
-                <Link href="/integrations" className="text-muted-foreground hover:text-primary">Integrations</Link>
-              </li>
-              <li>
                 <Link href="/changelog" className="text-muted-foreground hover:text-primary">Changelog</Link>
               </li>
             </ul>
