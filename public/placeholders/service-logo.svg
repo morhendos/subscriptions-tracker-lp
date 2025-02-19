@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with subtle pattern -->
+  <rect width="200" height="200" fill="#ffffff" rx="8" />
+  <rect width="200" height="200" fill="url(#grid-pattern)" rx="8" opacity="0.05" />
+  
+  <!-- Pattern definition -->
+  <defs>
+    <pattern id="grid-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="none" />
+      <path d="M 20 0 L 0 0 0 20" stroke="#000000" stroke-width="0.5" fill="none" />
+    </pattern>
+  </defs>
+
+  <!-- Company logo abstract representation -->
+  <g transform="translate(100, 100)">
+    <!-- Basic shape foundation -->
+    <rect x="-60" y="-40" width="120" height="80" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="3" />
+    
+    <!-- Abstract logo elements - using flat design approach -->
+    <circle cx="-25" cy="0" r="25" fill="#60a5fa" opacity="0.8" />
+    <rect x="10" y="-25" width="50" height="10" rx="2" fill="#818cf8" />
+    <rect x="10" y="-5" width="40" height="10" rx="2" fill="#818cf8" />
+    <rect x="10" y="15" width="30" height="10" rx="2" fill="#818cf8" />
+    
+    <!-- Dynamic element suggesting technology/service -->
+    <path d="M -40 -25 L -40 25 L -10 0 Z" fill="#0ea5e9" />
+  </g>
+  
+  <!-- Accessibility info -->
+  <title>Service Provider Logo Placeholder</title>
+  <desc>An abstract representation of a company or service logo for integration purposes.</desc>
+</svg>
