@@ -25,7 +25,25 @@ subscription-tracker/
 │   ├── App.css
 │   ├── App.tsx
 │   ├── app
+│   │   ├── about
+│   │   │   └── page.tsx
+│   │   ├── blog
+│   │   │   └── page.tsx
+│   │   ├── careers
+│   │   │   └── page.tsx
+│   │   ├── changelog
+│   │   │   └── page.tsx
+│   │   ├── contact
+│   │   │   └── page.tsx
+│   │   ├── cookie-policy
+│   │   │   └── page.tsx
+│   │   ├── features
+│   │   │   └── page.tsx
+│   │   ├── gdpr
+│   │   │   └── page.tsx
 │   │   ├── globals.css
+│   │   ├── integrations
+│   │   │   └── page.tsx
 │   │   ├── layout.tsx
 │   │   ├── not-found.tsx
 │   │   ├── page.tsx
@@ -34,7 +52,9 @@ subscription-tracker/
 │   │   ├── privacy
 │   │   │   └── page.tsx
 │   │   ├── robots.ts
-│   │   └── sitemap.ts
+│   │   ├── sitemap.ts
+│   │   └── terms
+│   │       └── page.tsx
 │   ├── components
 │   │   ├── CTAButton.tsx
 │   │   ├── FAQ.tsx
