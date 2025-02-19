@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Users, Target, Heart, Lightbulb, Shield, Library } from "lucide-react";
+import { ArrowRight, Users, Target, Heart, Lightbulb, Shield, Library, ChevronRight, Building } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "About Us | Subscriptions Tracker",
@@ -12,17 +11,14 @@ export const metadata: Metadata = {
   },
 };
 
-function TeamMember({ name, role, image, bio }) {
+// Team member component without image
+function TeamMember({ name, role, bio }) {
+  const initials = name.split(' ').map(n => n[0]).join('');
+  
   return (
-    <div className="flex flex-col items-center text-center">
-      <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-primary/10">
-        <Image 
-          src={image} 
-          alt={name} 
-          width={160}
-          height={160}
-          className="w-full h-full object-cover"
-        />
+    <div className="flex flex-col items-center text-center bg-card rounded-xl p-6 border shadow-sm hover:shadow-md transition-shadow">
+      <div className="w-24 h-24 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl font-semibold mb-4">
+        {initials}
       </div>
       <h3 className="text-xl font-semibold">{name}</h3>
       <p className="text-sm text-muted-foreground mb-3">{role}</p>
@@ -45,30 +41,73 @@ function ValueCard({ icon, title, description }) {
   );
 }
 
+// Visual element to replace team image
+function StoryVisual() {
+  return (
+    <div className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-primary/5 to-primary/20 p-8 aspect-video flex items-center justify-center relative">
+      <div className="absolute w-40 h-40 rounded-full bg-primary/10 top-0 left-0 transform -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute w-60 h-60 rounded-full bg-primary/10 bottom-0 right-0 transform translate-x-1/2 translate-y-1/2" />
+      
+      <div className="text-center relative z-10 max-w-md">
+        <div className="inline-block p-4 bg-card shadow-lg rounded-lg mb-6">
+          <svg width="120" height="60" viewBox="0 0 120 60" className="mx-auto">
+            <rect x="10" y="10" width="100" height="40" rx="4" fill="#e2e8f0" />
+            <circle cx="30" cy="30" r="10" fill="#94a3b8" />
+            <rect x="50" y="20" width="50" height="5" rx="2" fill="#94a3b8" />
+            <rect x="50" y="30" width="40" height="5" rx="2" fill="#94a3b8" />
+            <rect x="50" y="40" width="30" height="5" rx="2" fill="#94a3b8" />
+          </svg>
+        </div>
+        <h3 className="text-2xl font-bold mb-2">Our Journey</h3>
+        <p className="text-primary mb-4">From idea to 250,000+ users</p>
+        <div className="flex justify-center items-center">
+          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary mr-4">
+            2023
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground mx-4">
+            2025
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary ml-4">
+            Future
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Investor logo component without images
+function InvestorLogo({ name }) {
+  return (
+    <div className="w-36 h-16 bg-muted rounded-md flex items-center justify-center border">
+      <Building className="h-5 w-5 text-muted-foreground mr-2" />
+      <span className="text-sm font-medium">{name}</span>
+    </div>
+  );
+}
+
 export default function AboutPage() {
   const teamMembers = [
     {
       name: "Alex Chen",
       role: "Founder & CEO",
-      image: "/placeholder.svg",
       bio: "Former fintech executive who founded Subscriptions Tracker after struggling to manage his own 30+ subscriptions."
     },
     {
       name: "Sarah Johnson",
       role: "Chief Product Officer",
-      image: "/placeholder.svg",
       bio: "Product visionary with 12+ years experience building consumer-focused financial tools at leading tech companies."
     },
     {
       name: "Miguel Rodriguez",
       role: "CTO",
-      image: "/placeholder.svg",
       bio: "Engineering leader specializing in financial data systems with previous leadership roles at major financial institutions."
     },
     {
       name: "Leila Patel",
       role: "Head of Design",
-      image: "/placeholder.svg",
       bio: "Award-winning UX designer focused on creating intuitive interfaces for complex financial products."
     }
   ];
@@ -104,6 +143,14 @@ export default function AboutPage() {
       title: "Transparency",
       description: "We believe in being open and honest about our product, pricing, and how we use your data."
     }
+  ];
+
+  const investors = [
+    "Sequoia Capital", 
+    "Andreessen Horowitz", 
+    "Y Combinator", 
+    "Accel Partners",
+    "Union Square"
   ];
 
   return (
@@ -144,15 +191,7 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="lg:w-1/2">
-              <div className="rounded-xl overflow-hidden shadow-xl">
-                <Image
-                  src="/placeholder.svg"
-                  alt="Subscriptions Tracker team working"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto"
-                />
-              </div>
+              <StoryVisual />
             </div>
           </div>
         </div>
@@ -163,19 +202,19 @@ export default function AboutPage() {
         <div className="container px-4 mx-auto text-center">
           <h2 className="text-3xl font-bold mb-12">Our Impact</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div>
+            <div className="p-6 bg-card rounded-lg border">
               <div className="text-4xl font-bold text-primary mb-2">250K+</div>
               <p className="text-muted-foreground">Active Users</p>
             </div>
-            <div>
+            <div className="p-6 bg-card rounded-lg border">
               <div className="text-4xl font-bold text-primary mb-2">$60M+</div>
               <p className="text-muted-foreground">Annual Subscription Spend Tracked</p>
             </div>
-            <div>
+            <div className="p-6 bg-card rounded-lg border">
               <div className="text-4xl font-bold text-primary mb-2">$15M+</div>
               <p className="text-muted-foreground">Saved by Our Users</p>
             </div>
-            <div>
+            <div className="p-6 bg-card rounded-lg border">
               <div className="text-4xl font-bold text-primary mb-2">94%</div>
               <p className="text-muted-foreground">Customer Satisfaction</p>
             </div>
@@ -193,13 +232,12 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {teamMembers.map((member, index) => (
               <TeamMember
                 key={index}
                 name={member.name}
                 role={member.role}
-                image={member.image}
                 bio={member.bio}
               />
             ))}
@@ -250,12 +288,10 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-12 items-center opacity-60">
-            <Image src="/placeholder.svg" alt="Investor logo" width={120} height={40} />
-            <Image src="/placeholder.svg" alt="Investor logo" width={120} height={40} />
-            <Image src="/placeholder.svg" alt="Investor logo" width={120} height={40} />
-            <Image src="/placeholder.svg" alt="Investor logo" width={120} height={40} />
-            <Image src="/placeholder.svg" alt="Investor logo" width={120} height={40} />
+          <div className="flex flex-wrap justify-center gap-6 items-center">
+            {investors.map((investor, index) => (
+              <InvestorLogo key={index} name={investor} />
+            ))}
           </div>
         </div>
       </section>
