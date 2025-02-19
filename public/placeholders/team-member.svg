@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="150" cy="150" r="150" fill="#e2e8f0" />
+  
+  <!-- Shoulder silhouette -->
+  <path d="M50,280 C50,200 250,200 250,280" fill="#cbd5e1" />
+  
+  <!-- Head silhouette -->
+  <circle cx="150" cy="120" r="70" fill="#94a3b8" />
+  
+  <!-- Abstract facial features - professional but non-specific -->
+  <ellipse cx="150" cy="140" rx="25" ry="10" fill="#64748b" opacity="0.6" />
+  
+  <!-- Professional attire suggestion - subtle collar -->
+  <path d="M125,190 L130,250 L150,280 L170,250 L175,190" fill="#cbd5e1" />
+  <path d="M125,190 L175,190 L185,210 L115,210" fill="#94a3b8" />
+  
+  <!-- Accessibility info -->
+  <title>Team Member Placeholder</title>
+  <desc>A generic silhouette representing a professional team member.</desc>
+</svg>
