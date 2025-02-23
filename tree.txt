@@ -37,13 +37,13 @@ subscription-tracker/
 │   │   │   └── page.tsx
 │   │   ├── cookie-policy
 │   │   │   └── page.tsx
+│   │   ├── error.tsx
 │   │   ├── features
 │   │   │   └── page.tsx
 │   │   ├── gdpr
 │   │   │   └── page.tsx
+│   │   ├── global-error.tsx
 │   │   ├── globals.css
-│   │   ├── integrations
-│   │   │   └── page.tsx
 │   │   ├── layout.tsx
 │   │   ├── not-found.tsx
 │   │   ├── page.tsx
