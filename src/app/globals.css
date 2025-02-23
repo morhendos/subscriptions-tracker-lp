@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 .prose {
-  @apply space-y-6 text-gray-300;
+  @apply text-white;
 }
 
 .prose h2 {
-  @apply text-2xl font-bold mt-12 mb-6;
+  @apply text-2xl font-bold mt-12 mb-6 text-white;
 }
 
 .prose h3 {
-  @apply text-xl font-semibold mt-8 mb-4;
+  @apply text-xl font-semibold mt-8 mb-4 text-white;
 }
 
 .prose p {
-  @apply text-gray-300;
+  @apply text-white;
 }
 
 .prose ul,
 .prose ol {
-  @apply my-6 pl-6;
+  @apply my-6 pl-6 text-white;
 }
 
 .prose ul {
@@ -37,5 +37,13 @@
 
 .prose .tip,
 .prose .callout {
-  @apply my-8 p-6 rounded-lg bg-gray-800/50 border border-gray-800;
+  @apply my-8 p-6 rounded-lg bg-[#121212] border-0;
+}
+
+.prose .callout h3 {
+  @apply text-xl font-semibold mb-4;
+}
+
+.prose .lead {
+  @apply text-white/80;
 }
