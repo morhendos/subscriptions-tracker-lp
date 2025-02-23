@@ -29,19 +29,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-// Generate static pages for all blog posts
-export async function generateStaticParams() {
-  const slugs = await getAllArticleSlugs();
-  return slugs.map((slug) => ({
-    slug,
-  }));
-}
-
 // Page component
 export default async function BlogPostPage({ params }: PageProps) {
+  console.log('Rendering blog post page with slug:', params.slug);
+  
   const article = await getArticleBySlug(params.slug);
+  console.log('Found article:', article ? 'yes' : 'no');
 
   if (!article) {
+    console.log('Article not found, redirecting to 404');
     notFound();
   }
 
