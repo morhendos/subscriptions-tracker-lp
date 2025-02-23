@@ -42,11 +42,15 @@
 
   .prose-article .tip,
   .prose-article .callout {
-    @apply my-8 p-6 rounded-lg bg-gray-50 border border-gray-200;
+    @apply my-8 p-6 rounded-lg bg-muted border;
   }
 
   .prose-article .tip strong,
   .prose-article .callout strong {
-    @apply block mb-2;
+    @apply block mb-2 text-primary;
+  }
+
+  .prose-article .lead {
+    @apply text-xl text-muted-foreground;
   }
 }
