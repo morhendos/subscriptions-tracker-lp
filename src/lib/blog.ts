@@ -1,164 +1,254 @@
-// Previous content remains the same until the blogPosts array
-// Adding new articles to the blogPosts array
+import { Author, BlogPost } from '@/types/blog';
+
+// Blog posts data
+const blogPosts: BlogPost[] = [
+  // ... previous articles remain the same ...
   {
-    slug: 'subscription-trends-2025',
-    title: "Subscription Model Trends to Watch in 2025",
-    excerpt: "Analyzing emerging trends in subscription business models and what they mean for consumers in the coming year.",
+    slug: 'case-study-john-subscription-savings',
+    title: "How We Helped John Save $2,340 on Annual Subscriptions",
+    excerpt: "A real-world case study of how one user identified and eliminated unnecessary subscriptions for significant annual savings.",
     content: `
-      <h2>The Evolution of Subscription Models</h2>
-      <p>As we move further into 2025, the subscription economy continues to evolve and adapt to changing consumer needs and technological capabilities. This article explores the key trends shaping the future of subscription services.</p>
+      <h2>Background</h2>
+      <p>John, a 34-year-old software developer, came to us with a common problem: his subscription costs were spiraling out of control. This case study details how we helped him analyze and optimize his subscriptions for maximum savings.</p>
 
-      <h2>1. AI-Powered Personalization</h2>
-      <p>Artificial Intelligence is revolutionizing how subscription services adapt to individual user needs:</p>
+      <h2>Initial Situation</h2>
+      <h3>John's Subscription Portfolio:</h3>
       <ul>
-        <li>Dynamic pricing based on usage patterns</li>
-        <li>Predictive content and product recommendations</li>
-        <li>Automated subscription optimization suggestions</li>
+        <li>4 streaming services ($52/month)</li>
+        <li>3 cloud storage services ($25/month)</li>
+        <li>5 software subscriptions ($85/month)</li>
+        <li>2 gaming services ($25/month)</li>
+        <li>Various app subscriptions ($35/month)</li>
       </ul>
 
-      <h2>2. Hybrid Subscription Models</h2>
-      <p>Companies are increasingly combining different subscription approaches:</p>
+      <h2>Analysis Process</h2>
+      <h3>Step 1: Subscription Audit</h3>
+      <p>We helped John catalog all his active subscriptions and analyze:</p>
       <ul>
-        <li>Base subscriptions with pay-per-use components</li>
-        <li>Flexible tier switching without penalties</li>
-        <li>Bundled services across different providers</li>
+        <li>Monthly costs</li>
+        <li>Usage frequency</li>
+        <li>Feature overlap</li>
+        <li>Alternative options</li>
       </ul>
 
-      <h2>3. Sustainability Focus</h2>
-      <p>Environmental consciousness is becoming a key factor in subscription services:</p>
+      <h3>Step 2: Usage Analysis</h3>
+      <p>Key findings from usage patterns:</p>
       <ul>
-        <li>Carbon-neutral delivery options</li>
-        <li>Eco-friendly packaging initiatives</li>
-        <li>Sustainable product alternatives</li>
+        <li>60% of streaming content watched on two services</li>
+        <li>Multiple cloud storage services with low utilization</li>
+        <li>Unused premium features in software subscriptions</li>
       </ul>
 
-      <h2>4. Enhanced Mobile Integration</h2>
-      <p>Mobile-first experiences are becoming the norm:</p>
+      <h2>Optimization Strategy</h2>
+      <h3>1. Streaming Services</h3>
       <ul>
-        <li>One-tap subscription management</li>
-        <li>Integrated payment solutions</li>
-        <li>Real-time usage tracking</li>
+        <li>Consolidated to two primary services</li>
+        <li>Implemented seasonal rotation for others</li>
+        <li>Annual savings: $420</li>
       </ul>
 
-      <h2>5. Community-Driven Features</h2>
-      <p>Social elements are being integrated into subscription services:</p>
+      <h3>2. Cloud Storage</h3>
       <ul>
-        <li>Group subscription sharing</li>
-        <li>Community recommendations</li>
-        <li>Collaborative playlists and libraries</li>
+        <li>Consolidated to one service</li>
+        <li>Moved to family plan</li>
+        <li>Annual savings: $180</li>
       </ul>
 
-      <h2>Impact on Consumers</h2>
-      <p>These trends are reshaping the consumer experience in several ways:</p>
+      <h3>3. Software Subscriptions</h3>
       <ul>
-        <li>More flexible subscription options</li>
-        <li>Better value for money</li>
-        <li>Improved service personalization</li>
-        <li>Enhanced user control</li>
+        <li>Downgraded to appropriate tiers</li>
+        <li>Switched to annual billing</li>
+        <li>Annual savings: $540</li>
       </ul>
 
-      <h2>Recommendations for Consumers</h2>
-      <p>To make the most of these trends:</p>
+      <h3>4. Gaming Services</h3>
       <ul>
-        <li>Regularly review subscription features</li>
-        <li>Take advantage of new flexibility options</li>
-        <li>Engage with community features</li>
-        <li>Monitor AI-powered recommendations</li>
+        <li>Consolidated to one primary service</li>
+        <li>Annual savings: $180</li>
+      </ul>
+
+      <h3>5. App Subscriptions</h3>
+      <ul>
+        <li>Identified free alternatives</li>
+        <li>Removed unused apps</li>
+        <li>Annual savings: $300</li>
+      </ul>
+
+      <h2>Implementation</h2>
+      <p>Changes were implemented gradually over one month:</p>
+      <ul>
+        <li>Week 1: Service consolidation</li>
+        <li>Week 2: Plan optimizations</li>
+        <li>Week 3: Cancellations</li>
+        <li>Week 4: New system setup</li>
+      </ul>
+
+      <h2>Results</h2>
+      <h3>Financial Impact:</h3>
+      <ul>
+        <li>Total annual savings: $2,340</li>
+        <li>Monthly reduction: $195</li>
+        <li>Savings percentage: 42%</li>
+      </ul>
+
+      <h3>Quality of Service:</h3>
+      <ul>
+        <li>No loss of essential features</li>
+        <li>Improved organization</li>
+        <li>Better utilization of services</li>
+      </ul>
+
+      <h2>Lessons Learned</h2>
+      <p>Key takeaways from John's experience:</p>
+      <ul>
+        <li>Regular subscription audits are essential</li>
+        <li>Feature overlap often goes unnoticed</li>
+        <li>Alternative solutions can provide same value</li>
+        <li>Small changes add up to significant savings</li>
       </ul>
 
       <h2>Conclusion</h2>
-      <p>The subscription economy is becoming more sophisticated and user-centric. Staying informed about these trends helps consumers make better decisions about their subscription services.</p>
+      <p>John's case demonstrates how systematic subscription management can lead to substantial savings without sacrificing service quality. His success story has become a blueprint for helping other users optimize their subscription spending.</p>
     `,
-    date: "February 12, 2025",
-    readTime: "7 min read",
-    category: "Industry Trends",
+    date: "January 10, 2025",
+    readTime: "8 min read",
+    category: "Case Studies",
     author: {
-      name: "Leila Patel",
-      role: "Market Analyst"
+      name: "Maya Patel",
+      role: "Customer Success Manager"
     }
   },
   {
-    slug: 'family-subscription-sharing',
-    title: "Family Subscription Sharing: Maximize Value While Staying Compliant",
-    excerpt: "How to share subscription services with family members legally and ethically, while getting the most value for your money.",
+    slug: 'environmental-impact-digital-subscriptions',
+    title: "The Environmental Impact of Digital Subscriptions",
+    excerpt: "Exploring the often-overlooked environmental considerations of our increasingly subscription-based digital consumption.",
     content: `
-      <h2>Introduction to Family Sharing</h2>
-      <p>Family subscription sharing has become an increasingly popular way to maximize value from digital services. However, it's important to understand the rules and best practices to share responsibly.</p>
+      <h2>Introduction</h2>
+      <p>As our lives become increasingly digital, it's important to understand the environmental impact of our subscription services. From streaming to cloud storage, each digital service has its own carbon footprint.</p>
 
-      <h2>Understanding Family Plans</h2>
-      <h3>Common Features:</h3>
+      <h2>Understanding Digital Carbon Footprint</h2>
+      <h3>Key Components:</h3>
       <ul>
-        <li>Multiple user profiles</li>
-        <li>Shared payment methods</li>
-        <li>Individual preferences and settings</li>
-        <li>Usage monitoring tools</li>
+        <li>Data center energy consumption</li>
+        <li>Network infrastructure</li>
+        <li>End-user device usage</li>
+        <li>Hardware lifecycle impact</li>
       </ul>
 
-      <h2>Popular Services with Family Plans</h2>
-      <p>Overview of major services offering family sharing:</p>
+      <h2>Impact by Service Type</h2>
+      <h3>1. Video Streaming</h3>
+      <p>Environmental considerations:</p>
       <ul>
-        <li>Streaming services (music, video)</li>
-        <li>Cloud storage solutions</li>
-        <li>Productivity software</li>
-        <li>Security applications</li>
+        <li>Resolution impact on data usage</li>
+        <li>Server farm energy consumption</li>
+        <li>Content delivery networks</li>
+        <li>Device efficiency</li>
       </ul>
 
-      <h2>Best Practices for Family Sharing</h2>
-      <ol>
-        <li>Review terms of service carefully</li>
-        <li>Set up individual profiles properly</li>
-        <li>Maintain security protocols</li>
-        <li>Monitor usage patterns</li>
-      </ol>
-
-      <h2>Common Pitfalls to Avoid</h2>
-      <p>Watch out for these common mistakes:</p>
+      <h3>2. Cloud Storage</h3>
       <ul>
-        <li>Sharing with non-family members</li>
-        <li>Exceeding user limits</li>
-        <li>Mixing personal and family accounts</li>
-        <li>Ignoring geographical restrictions</li>
+        <li>Data redundancy requirements</li>
+        <li>Continuous server operation</li>
+        <li>Backup systems</li>
+        <li>Infrastructure cooling</li>
       </ul>
 
-      <h2>Cost-Benefit Analysis</h2>
-      <p>Understanding the financial aspects:</p>
+      <h3>3. Music Streaming</h3>
       <ul>
-        <li>Compare individual vs. family plan pricing</li>
-        <li>Calculate per-user costs</li>
-        <li>Consider usage patterns</li>
-        <li>Factor in additional features</li>
+        <li>Lower data intensity than video</li>
+        <li>Offline download impact</li>
+        <li>Server maintenance</li>
       </ul>
 
-      <h2>Security Considerations</h2>
-      <p>Keeping your family's data safe:</p>
+      <h2>Reducing Your Digital Carbon Footprint</h2>
+      <h3>Individual Actions:</h3>
       <ul>
-        <li>Use strong passwords</li>
-        <li>Enable two-factor authentication</li>
-        <li>Regular security audits</li>
-        <li>Privacy settings management</li>
+        <li>Optimize streaming quality</li>
+        <li>Use offline downloads strategically</li>
+        <li>Manage cloud storage efficiently</li>
+        <li>Choose eco-friendly providers</li>
       </ul>
 
-      <h2>Future of Family Sharing</h2>
-      <p>Upcoming trends and developments:</p>
+      <h3>Service Provider Initiatives:</h3>
       <ul>
-        <li>Enhanced customization options</li>
-        <li>Improved usage analytics</li>
-        <li>More flexible payment arrangements</li>
-        <li>Better integration between services</li>
+        <li>Renewable energy adoption</li>
+        <li>Energy-efficient data centers</li>
+        <li>Green hosting solutions</li>
+        <li>Carbon offset programs</li>
+      </ul>
+
+      <h2>Future Outlook</h2>
+      <p>Emerging trends in sustainable digital services:</p>
+      <ul>
+        <li>Green streaming technologies</li>
+        <li>Energy-aware content delivery</li>
+        <li>Sustainable data center design</li>
+        <li>Consumer awareness tools</li>
+      </ul>
+
+      <h2>Recommendations</h2>
+      <h3>For Consumers:</h3>
+      <ul>
+        <li>Audit digital consumption habits</li>
+        <li>Choose sustainable service providers</li>
+        <li>Optimize device settings</li>
+        <li>Support green initiatives</li>
       </ul>
 
       <h2>Conclusion</h2>
-      <p>Family subscription sharing can provide significant value when done correctly. Follow the guidelines to ensure compliance while maximizing benefits for your family.</p>
+      <p>While digital subscriptions offer convenience and value, it's important to consider their environmental impact. By making informed choices and supporting sustainable practices, we can help minimize the ecological footprint of our digital lifestyle.</p>
     `,
-    date: "February 5, 2025",
+    date: "January 2, 2025",
     readTime: "9 min read",
-    category: "Tips & Tricks",
+    category: "Sustainability",
     author: {
-      name: "Carlos Mendez",
-      role: "Consumer Rights Specialist"
+      name: "Thomas Green",
+      role: "Environmental Researcher"
     }
   }
-  // ... continue with more articles
 ];
 
-// Rest of the utility functions remain the same...
+// Utility functions
+export async function getAllPosts(): Promise<BlogPost[]> {
+  return blogPosts;
+}
+
+export async function getFeaturedPosts(): Promise<BlogPost[]> {
+  return blogPosts.filter(post => post.featured);
+}
+
+export async function getRecentPosts(limit: number = 6): Promise<BlogPost[]> {
+  return blogPosts
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, limit);
+}
+
+export async function getArticleBySlug(slug: string): Promise<BlogPost | null> {
+  const post = blogPosts.find(post => post.slug === slug);
+  return post || null;
+}
+
+export async function getAllArticleSlugs(): Promise<string[]> {
+  return blogPosts.map(post => post.slug);
+}
+
+export async function getPostsByCategory(category: string): Promise<BlogPost[]> {
+  return blogPosts.filter(post => post.category.toLowerCase() === category.toLowerCase());
+}
+
+export async function getAllCategories(): Promise<string[]> {
+  const categories = new Set(blogPosts.map(post => post.category));
+  return Array.from(categories);
+}
+
+export async function getPostsByAuthor(authorName: string): Promise<BlogPost[]> {
+  return blogPosts.filter(post => post.author.name === authorName);
+}
+
+export async function getAllAuthors(): Promise<Author[]> {
+  const authorMap = new Map<string, Author>();
+  blogPosts.forEach(post => {
+    authorMap.set(post.author.name, post.author);
+  });
+  return Array.from(authorMap.values());
+}
