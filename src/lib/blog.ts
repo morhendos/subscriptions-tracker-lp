@@ -68,7 +68,7 @@ const blogPosts: BlogPost[] = [
     excerpt: "How to share subscription services with family members legally and ethically, while getting the most value for your money.",
     content: familySharingContent,
     date: "February 5, 2025",
-    readTime: "8 min read", // ~1,800 words
+    readTime: "8 min read",
     category: "Tips & Tricks",
     author: {
       name: "Carlos Mendez",
@@ -77,4 +77,53 @@ const blogPosts: BlogPost[] = [
   }
 ];
 
-// Utility functions remain the same...
+// Utility functions
+export const getAllPosts = (): Promise<BlogPost[]> => {
+  return Promise.resolve(blogPosts);
+};
+
+export const getFeaturedPosts = (): Promise<BlogPost[]> => {
+  return Promise.resolve(blogPosts.filter(post => post.featured));
+};
+
+export const getRecentPosts = (limit: number = 6): Promise<BlogPost[]> => {
+  return Promise.resolve(
+    blogPosts
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, limit)
+  );
+};
+
+export const getArticleBySlug = (slug: string): Promise<BlogPost | null> => {
+  const post = blogPosts.find(post => post.slug === slug);
+  return Promise.resolve(post || null);
+};
+
+export const getAllArticleSlugs = (): Promise<string[]> => {
+  return Promise.resolve(blogPosts.map(post => post.slug));
+};
+
+export const getPostsByCategory = (category: string): Promise<BlogPost[]> => {
+  return Promise.resolve(
+    blogPosts.filter(post => post.category.toLowerCase() === category.toLowerCase())
+  );
+};
+
+export const getAllCategories = (): Promise<string[]> => {
+  const categories = new Set(blogPosts.map(post => post.category));
+  return Promise.resolve(Array.from(categories));
+};
+
+export const getPostsByAuthor = (authorName: string): Promise<BlogPost[]> => {
+  return Promise.resolve(
+    blogPosts.filter(post => post.author.name === authorName)
+  );
+};
+
+export const getAllAuthors = (): Promise<Author[]> => {
+  const authorMap = new Map<string, Author>();
+  blogPosts.forEach(post => {
+    authorMap.set(post.author.name, post.author);
+  });
+  return Promise.resolve(Array.from(authorMap.values()));
+};
