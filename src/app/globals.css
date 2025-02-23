@@ -2,64 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
- 
-@layer base {
-  :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
- 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
- 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
- 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
- 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
- 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
- 
-    --radius: 0.5rem;
+@layer components {
+  .prose-article {
+    @apply text-lg leading-relaxed;
   }
-}
- 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Syne', sans-serif;
-  }
-}
 
-@keyframes float {
-  0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0;
+  .prose-article h2 {
+    @apply text-3xl font-bold mt-12 mb-6 tracking-tight scroll-mt-20;
   }
-  50% {
-    opacity: 0.5;
+
+  .prose-article h3 {
+    @apply text-2xl font-semibold mt-8 mb-4 tracking-tight;
   }
-  100% {
-    transform: translateY(-100vh) translateX(100px);
-    opacity: 0;
+
+  .prose-article p {
+    @apply text-lg leading-relaxed mb-6;
+  }
+
+  .prose-article ul,
+  .prose-article ol {
+    @apply my-6 pl-6;
+  }
+
+  .prose-article ul {
+    @apply list-disc;
+  }
+
+  .prose-article ol {
+    @apply list-decimal;
+  }
+
+  .prose-article li {
+    @apply mb-2 text-lg;
+  }
+
+  .prose-article strong {
+    @apply font-semibold;
+  }
+
+  .prose-article .tip,
+  .prose-article .callout {
+    @apply my-8 p-6 rounded-lg bg-gray-50 border border-gray-200;
+  }
+
+  .prose-article .tip strong,
+  .prose-article .callout strong {
+    @apply block mb-2;
   }
 }
