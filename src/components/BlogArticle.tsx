@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { CalendarDays, Clock, ArrowLeft, User, Tag, Share2 } from 'lucide-react';
+import { CalendarDays, Clock, ArrowLeft, User, Tag } from 'lucide-react';
 
 interface Author {
   name: string;
@@ -13,7 +13,6 @@ interface BlogArticleProps {
   readTime: string;
   author: Author;
   category: string;
-  excerpt: string;
   children: React.ReactNode;
 }
 
@@ -23,7 +22,6 @@ export default function BlogArticle({
   readTime,
   author,
   category,
-  excerpt,
   children
 }: BlogArticleProps) {
   // Generate a consistent color based on category
@@ -45,30 +43,16 @@ export default function BlogArticle({
   return (
     <article className="max-w-4xl mx-auto">
       {/* Navigation */}
-      <div className="mb-8 flex justify-between items-center">
-        <Link
-          href="/blog"
-          className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to blog
-        </Link>
-        
-        <button 
-          className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
-          onClick={() => navigator.share?.({
-            title: title,
-            text: excerpt,
-            url: window.location.href,
-          }).catch(() => {})}
-        >
-          <Share2 className="mr-2 h-4 w-4" />
-          Share article
-        </button>
-      </div>
+      <Link
+        href="/blog"
+        className="inline-flex items-center text-muted-foreground hover:text-primary mb-8"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to blog
+      </Link>
 
       {/* Article header */}
-      <header className="mb-12 pb-8 border-b">
+      <header className="mb-16">
         <div className="space-y-4">
           <div>
             <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(category)}`}>
@@ -79,12 +63,8 @@ export default function BlogArticle({
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             {title}
           </h1>
-
-          <p className="text-xl text-muted-foreground leading-relaxed">
-            {excerpt}
-          </p>
           
-          <div className="flex flex-wrap items-center gap-6 pt-4 text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-4 mt-6 text-muted-foreground">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="font-medium text-foreground">{author.name}</span>
@@ -105,54 +85,57 @@ export default function BlogArticle({
       </header>
 
       {/* Article content */}
-      <div className="prose prose-lg max-w-none">
-        {/* Table of Contents */}
-        <div className="not-prose mb-12 p-6 bg-muted rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Table of Contents</h2>
-          <nav>
-            <ul className="space-y-2 list-none pl-0">
-              {/* Extract h2 headings from content and create links */}
-              {React.Children.map(children, child => {
-                if (React.isValidElement(child) && child.type === 'div') {
-                  const html = child.props.dangerouslySetInnerHTML.__html;
-                  const matches = html.match(/<h2[^>]*>(.*?)<\/h2>/g);
-                  return matches?.map((match, index) => {
-                    const title = match.replace(/<[^>]+>/g, '');
-                    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                    return (
-                      <li key={index}>
-                        <a 
-                          href={`#${slug}`}
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {title}
-                        </a>
-                      </li>
-                    );
-                  });
-                }
-              })}
-            </ul>
-          </nav>
-        </div>
-
-        {/* Processed content with IDs for headings */}
-        {React.Children.map(children, child => {
-          if (React.isValidElement(child) && child.type === 'div') {
-            const html = child.props.dangerouslySetInnerHTML.__html;
-            const processedHtml = html.replace(
-              /<h2[^>]*>(.*?)<\/h2>/g,
-              (match, title) => {
-                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                return `<h2 id="${slug}">${title}</h2>`;
-              }
-            );
-            return React.cloneElement(child, {
-              dangerouslySetInnerHTML: { __html: processedHtml }
-            });
+      <div className="prose max-w-none">
+        <style jsx global>{`
+          .prose h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            scroll-margin-top: 5rem;
           }
-          return child;
-        })}
+          .prose h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+          }
+          .prose p {
+            font-size: 1.125rem;
+            line-height: 1.75;
+            margin-bottom: 1.5rem;
+          }
+          .prose ul, .prose ol {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+          }
+          .prose li {
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+          }
+          .prose strong {
+            font-weight: 600;
+          }
+          .prose ul > li {
+            list-style-type: disc;
+          }
+          .prose ol > li {
+            list-style-type: decimal;
+          }
+          .prose .tip, .prose .callout {
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+          }
+          .prose .tip strong, .prose .callout strong {
+            display: block;
+            margin-bottom: 0.5rem;
+          }
+        `}</style>
+        {children}
       </div>
 
       {/* Article footer */}
@@ -165,7 +148,7 @@ export default function BlogArticle({
           
           <Link
             href={`/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`}
-            className="inline-flex items-center text-sm hover:text-primary transition-colors"
+            className="inline-flex items-center text-sm hover:text-primary"
           >
             <Tag className="mr-2 h-4 w-4" />
             More from {category}
