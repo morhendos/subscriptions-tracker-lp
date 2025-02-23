@@ -3,6 +3,7 @@ import { content as subscriptionServicesContent } from '@/content/subscription-s
 import { content as psychologyContent } from '@/content/psychology-subscription-fatigue';
 import { content as auditGuideContent } from '@/content/audit-subscriptions-guide';
 import { content as trendsContent } from '@/content/subscription-trends-2025';
+import { content as familySharingContent } from '@/content/family-subscription-sharing';
 
 // Blog posts data
 const blogPosts: BlogPost[] = [
@@ -54,11 +55,24 @@ const blogPosts: BlogPost[] = [
     excerpt: "Analyzing emerging trends in subscription business models and what they mean for consumers in the coming year.",
     content: trendsContent,
     date: "February 12, 2025",
-    readTime: "7 min read", // ~1,500 words
+    readTime: "7 min read",
     category: "Industry Trends",
     author: {
       name: "Leila Patel",
       role: "Market Analyst"
+    }
+  },
+  {
+    slug: 'family-subscription-sharing',
+    title: "Family Subscription Sharing: Maximize Value While Staying Compliant",
+    excerpt: "How to share subscription services with family members legally and ethically, while getting the most value for your money.",
+    content: familySharingContent,
+    date: "February 5, 2025",
+    readTime: "8 min read", // ~1,800 words
+    category: "Tips & Tricks",
+    author: {
+      name: "Carlos Mendez",
+      role: "Consumer Rights Specialist"
     }
   }
 ];
