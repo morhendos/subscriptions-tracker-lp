@@ -4,24 +4,24 @@
 
 @layer components {
   .prose-article {
-    @apply text-lg leading-relaxed;
+    @apply text-lg leading-relaxed text-gray-300;
   }
 
   .prose-article h2 {
-    @apply text-3xl font-bold mt-12 mb-6 tracking-tight scroll-mt-20;
+    @apply text-3xl font-bold mt-12 mb-6 tracking-tight scroll-mt-20 text-white;
   }
 
   .prose-article h3 {
-    @apply text-2xl font-semibold mt-8 mb-4 tracking-tight;
+    @apply text-2xl font-semibold mt-8 mb-4 tracking-tight text-gray-100;
   }
 
   .prose-article p {
-    @apply text-lg leading-relaxed mb-6;
+    @apply text-lg leading-relaxed mb-6 text-gray-300;
   }
 
   .prose-article ul,
   .prose-article ol {
-    @apply my-6 pl-6;
+    @apply my-6 pl-6 text-gray-300;
   }
 
   .prose-article ul {
@@ -37,20 +37,20 @@
   }
 
   .prose-article strong {
-    @apply font-semibold;
+    @apply font-semibold text-white;
   }
 
   .prose-article .tip,
   .prose-article .callout {
-    @apply my-8 p-6 rounded-lg bg-muted border;
+    @apply my-8 p-6 rounded-lg bg-gray-800/50 border border-gray-700;
   }
 
   .prose-article .tip strong,
   .prose-article .callout strong {
-    @apply block mb-2 text-primary;
+    @apply block mb-2 text-blue-400;
   }
 
   .prose-article .lead {
-    @apply text-xl text-muted-foreground;
+    @apply text-xl text-gray-400;
   }
 }
