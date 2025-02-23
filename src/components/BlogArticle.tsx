@@ -85,56 +85,7 @@ export default function BlogArticle({
       </header>
 
       {/* Article content */}
-      <div className="prose max-w-none">
-        <style jsx global>{`
-          .prose h2 {
-            font-size: 1.875rem;
-            font-weight: 700;
-            margin-top: 3rem;
-            margin-bottom: 1.5rem;
-            scroll-margin-top: 5rem;
-          }
-          .prose h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-          }
-          .prose p {
-            font-size: 1.125rem;
-            line-height: 1.75;
-            margin-bottom: 1.5rem;
-          }
-          .prose ul, .prose ol {
-            margin-top: 1.5rem;
-            margin-bottom: 1.5rem;
-            padding-left: 1.5rem;
-          }
-          .prose li {
-            margin-bottom: 0.5rem;
-            font-size: 1.125rem;
-          }
-          .prose strong {
-            font-weight: 600;
-          }
-          .prose ul > li {
-            list-style-type: disc;
-          }
-          .prose ol > li {
-            list-style-type: decimal;
-          }
-          .prose .tip, .prose .callout {
-            padding: 1.5rem;
-            margin: 2rem 0;
-            border-radius: 0.5rem;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-          }
-          .prose .tip strong, .prose .callout strong {
-            display: block;
-            margin-bottom: 0.5rem;
-          }
-        `}</style>
+      <div className="prose-article">
         {children}
       </div>
 
