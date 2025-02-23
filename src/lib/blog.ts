@@ -1,5 +1,6 @@
 import { Author, BlogPost } from '@/types/blog';
 import { content as subscriptionServicesContent } from '@/content/subscription-services-overpaying';
+import { content as psychologyContent } from '@/content/psychology-subscription-fatigue';
 
 // Blog posts data
 const blogPosts: BlogPost[] = [
@@ -14,6 +15,20 @@ const blogPosts: BlogPost[] = [
     author: {
       name: "Sarah Johnson",
       role: "Financial Analyst"
+    },
+    featured: true
+  },
+  {
+    slug: 'psychology-subscription-fatigue',
+    title: "The Psychology Behind Subscription Fatigue (And How to Beat It)",
+    excerpt: "Understanding the psychological mechanisms that make us reluctant to cancel unused subscriptions, and practical strategies to overcome them.",
+    content: psychologyContent,
+    date: "February 8, 2025",
+    readTime: "10 min read",
+    category: "Behavioral Finance",
+    author: {
+      name: "Dr. Michael Wong",
+      role: "Consumer Psychologist"
     },
     featured: true
   }
