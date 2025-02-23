@@ -1,6 +1,7 @@
 import { Author, BlogPost } from '@/types/blog';
 import { content as subscriptionServicesContent } from '@/content/subscription-services-overpaying';
 import { content as psychologyContent } from '@/content/psychology-subscription-fatigue';
+import { content as auditGuideContent } from '@/content/audit-subscriptions-guide';
 
 // Blog posts data
 const blogPosts: BlogPost[] = [
@@ -29,6 +30,20 @@ const blogPosts: BlogPost[] = [
     author: {
       name: "Dr. Michael Wong",
       role: "Consumer Psychologist"
+    },
+    featured: true
+  },
+  {
+    slug: 'audit-subscriptions-guide',
+    title: "How to Audit Your Subscriptions: A Step-by-Step Guide",
+    excerpt: "A comprehensive guide to finding all your active subscriptions, evaluating their value, and making informed decisions about what to keep.",
+    content: auditGuideContent,
+    date: "January 29, 2025",
+    readTime: "12 min read",
+    category: "Guides",
+    author: {
+      name: "Alex Chen",
+      role: "Founder & CEO"
     },
     featured: true
   }
