@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -7,9 +8,15 @@ import { cn } from '@/lib/utils';
 import { pricingTiers } from '@/config/pricing';
 import type { PricingTier } from '@/config/pricing';
 import { SchemaOrg } from '@/components/SchemaOrg';
+import { FEATURES } from '@/config/features';
 import Link from 'next/link';
+import ComingSoonModal from './ComingSoonModal';
 
 function PricingCard({ tier }: { tier: PricingTier }) {
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const isPremium = tier.id !== 'free';
+  const isPremiumEnabled = FEATURES.PAYMENT_ENABLED;
+
   return (
     <Card className={cn(
       'relative flex flex-col h-full',
@@ -19,6 +26,15 @@ function PricingCard({ tier }: { tier: PricingTier }) {
         <div className="absolute -top-4 left-0 right-0 flex justify-center">
           <span className="bg-primary text-primary-foreground text-sm font-medium px-3 py-1 rounded-full">
             Best Value
+          </span>
+        </div>
+      )}
+
+      {/* Add "Coming Soon" badge for premium plans if payments aren't enabled */}
+      {isPremium && !isPremiumEnabled && FEATURES.SHOW_COMING_SOON && (
+        <div className="absolute top-3 right-3">
+          <span className="bg-primary/20 text-primary text-xs py-1 px-2 rounded-full">
+            Coming Soon
           </span>
         </div>
       )}
@@ -69,16 +85,37 @@ function PricingCard({ tier }: { tier: PricingTier }) {
       </CardContent>
 
       <CardFooter className="pt-6">
-        <Button 
-          className="w-full" 
-          variant={tier.popular ? 'default' : 'outline'}
-          size="lg"
-          asChild
-        >
-          <Link href={tier.actionUrl}>
-            {tier.ctaText}
-          </Link>
-        </Button>
+        {isPremium && !isPremiumEnabled ? (
+          // Premium plan button - show coming soon modal
+          <>
+            <Button 
+              className="w-full" 
+              variant={tier.popular ? 'default' : 'outline'}
+              size="lg"
+              onClick={() => setShowComingSoonModal(true)}
+            >
+              {tier.ctaText}
+            </Button>
+            
+            <ComingSoonModal 
+              isOpen={showComingSoonModal}
+              onClose={() => setShowComingSoonModal(false)}
+              planName={tier.name}
+            />
+          </>
+        ) : (
+          // Free plan or enabled premium plan - direct link
+          <Button 
+            className="w-full" 
+            variant={tier.popular ? 'default' : 'outline'}
+            size="lg"
+            asChild
+          >
+            <Link href={tier.actionUrl}>
+              {tier.ctaText}
+            </Link>
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
