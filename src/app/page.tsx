@@ -12,6 +12,7 @@ export default function Home() {
         <Hero />
         <Features />
         <Testimonials />
+        <PricingSection />
         <FAQ />
       </main>
     </>

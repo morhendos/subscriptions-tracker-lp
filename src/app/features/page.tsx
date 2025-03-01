@@ -6,6 +6,7 @@ import {
   LineChart, BarChart3, DollarSign, Percent, Calendar, Filter,
   Smartphone, Tag, UserPlus, Trash2
 } from "lucide-react";
+import { APP_URL } from "@/config/constants";
 
 export const metadata: Metadata = {
   title: "Features | Subscriptions Tracker",
@@ -363,7 +364,7 @@ export default function FeaturesPage() {
             Join thousands of users who save an average of $240 per year by optimizing their subscriptions with our tools.
           </p>
           <Link
-            href="/pricing"
+            href={`${APP_URL}signup`}
             className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-background text-foreground hover:bg-secondary h-11 px-8"
           >
             Get Started For Free

@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { pricingTiers } from '@/config/pricing';
 import type { PricingTier } from '@/config/pricing';
 import { SchemaOrg } from '@/components/SchemaOrg';
+import Link from 'next/link';
 
 function PricingCard({ tier }: { tier: PricingTier }) {
   return (
@@ -72,8 +73,11 @@ function PricingCard({ tier }: { tier: PricingTier }) {
           className="w-full" 
           variant={tier.popular ? 'default' : 'outline'}
           size="lg"
+          asChild
         >
-          {tier.ctaText}
+          <Link href={tier.actionUrl}>
+            {tier.ctaText}
+          </Link>
         </Button>
       </CardFooter>
     </Card>
