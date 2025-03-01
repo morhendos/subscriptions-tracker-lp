@@ -12,6 +12,7 @@ export interface PricingTier {
   features: PricingFeature[];
   popular?: boolean;
   ctaText: string;
+  actionUrl: string; // Added actionUrl property
 }
 
 export const pricingFeatures = {
@@ -67,7 +68,8 @@ export const pricingTiers: PricingTier[] = [
       { ...pricingFeatures.budgetAlerts, included: false },
       { ...pricingFeatures.prioritySupport, included: false }
     ],
-    ctaText: 'Get Started Free'
+    ctaText: 'Get Started Free',
+    actionUrl: 'https://app.subscriptions-tracker.com/signup'
   },
   {
     id: 'lifetime',
@@ -84,6 +86,7 @@ export const pricingTiers: PricingTier[] = [
       { ...pricingFeatures.budgetAlerts, included: true },
       { ...pricingFeatures.prioritySupport, included: true }
     ],
-    ctaText: 'Get Lifetime Access'
+    ctaText: 'Get Lifetime Access',
+    actionUrl: 'https://app.subscriptions-tracker.com/signup?plan=lifetime'
   }
 ];
