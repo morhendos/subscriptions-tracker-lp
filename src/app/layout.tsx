@@ -9,6 +9,7 @@ import {
   generateWebsiteSchema,
 } from "@/lib/schema";
 import Footer from "@/components/Footer";
+import Analytics from "@/components/Analytics";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -132,6 +133,11 @@ export default function RootLayout({
         <SchemaOrg schema={softwareAppSchema} />
         <SchemaOrg schema={organizationSchema} />
         <SchemaOrg schema={websiteSchema} />
+        {/* Analytics Scripts */}
+        <Analytics 
+          googleAnalyticsId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+          microsoftClarityId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID}
+        />
       </head>
       <body className={inter.className}>
         <Header />
