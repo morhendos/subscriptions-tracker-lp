@@ -41,11 +41,18 @@ export const FEATURES = {
   - [x] Design clear messaging about upcoming premium features
   - [x] Implement redirection to free signup from modal
 
-- [x] **Email Collection System**
+- [x] **Email Collection System UI**
   - [x] Create waitlist form UI component
   - [x] Create waitlist page
-  - [x] Add API endpoint for email storage
+  - [x] Add API endpoint structure for email storage
   - [x] Set up success/error handling
+
+- [ ] **Waitlist Database Implementation**
+  - [ ] Set up database collection/table for waitlist entries
+  - [ ] Create schema for waitlist entries (name, email, timestamp, source)
+  - [ ] Update API endpoint to store submissions in database
+  - [ ] Add email validation and duplicate checking
+  - [ ] Implement admin view for waitlist entries
 
 - [ ] **Premium Feature Gating**
   - [x] Create PremiumFeatureGate component
@@ -81,6 +88,124 @@ export const FEATURES = {
   - [ ] Implement backend validation for premium features
   - [ ] Create subscription lifecycle management
   - [ ] Build admin tools for subscription management
+
+## Waitlist Database Implementation Details
+
+### Database Schema
+
+```typescript
+// MongoDB schema example
+interface WaitlistEntry {
+  name: string;            // User's name
+  email: string;           // User's email (indexed, unique)
+  createdAt: Date;         // Timestamp of submission
+  source: string;          // Where they signed up (pricing page, feature gate, etc.)
+  interests?: string[];    // Optional: specific premium features they're interested in
+  notes?: string;          // Optional: additional information
+  contacted: boolean;      // Whether they've been contacted about premium launch
+  convertedToCustomer: boolean; // Whether they've converted to a paid customer
+}
+```
+
+### API Endpoint Implementation
+
+```typescript
+// src/app/api/waitlist/route.ts
+import { NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/database';
+
+export async function POST(request: Request) {
+  try {
+    const { email, name, source = 'waitlist_page' } = await request.json();
+    
+    // Validate inputs
+    if (!email || !name) {
+      return NextResponse.json(
+        { error: 'Email and name are required' },
+        { status: 400 }
+      );
+    }
+    
+    // Connect to database
+    const db = await connectToDatabase();
+    const waitlistCollection = db.collection('waitlist');
+    
+    // Check for duplicate email
+    const existingEntry = await waitlistCollection.findOne({ email });
+    if (existingEntry) {
+      return NextResponse.json(
+        { success: false, message: 'Email already registered for waitlist' },
+        { status: 409 }
+      );
+    }
+    
+    // Create new entry
+    const result = await waitlistCollection.insertOne({
+      name,
+      email,
+      source,
+      createdAt: new Date(),
+      contacted: false,
+      convertedToCustomer: false
+    });
+    
+    // Optional: Send confirmation email
+    // await sendConfirmationEmail(email, name);
+    
+    return NextResponse.json(
+      { success: true, message: 'Added to waitlist', id: result.insertedId },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Waitlist error:', error);
+    return NextResponse.json(
+      { error: 'Failed to join waitlist' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Admin Dashboard
+
+Create a simple admin dashboard to:
+1. View all waitlist entries
+2. Export data as CSV
+3. Mark entries as contacted
+4. Filter and sort entries
+5. Add notes to entries
+
+This can be built as a protected route in the main application or as a separate admin tool.
+
+### Database Service
+
+```typescript
+// src/lib/database.ts
+import { MongoClient } from 'mongodb';
+
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const dbName = process.env.MONGODB_DB || 'subscriptions_tracker';
+
+let cachedClient = null;
+let cachedDb = null;
+
+export async function connectToDatabase() {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  if (!cachedClient) {
+    cachedClient = await MongoClient.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  }
+
+  const db = cachedClient.db(dbName);
+  cachedDb = db;
+  return db;
+}
+```
 
 ## Component Usage Guide
 
@@ -180,3 +305,4 @@ To test different states of the payment system, modify the feature flags in `src
 - **Feature Flags**: [Martin Fowler's Feature Toggles](https://martinfowler.com/articles/feature-toggles.html)
 - **Payment Processing**: [Stripe Documentation](https://stripe.com/docs)
 - **UI Components**: [shadcn/ui Documentation](https://ui.shadcn.com)
+- **MongoDB**: [MongoDB Documentation](https://docs.mongodb.com/)
