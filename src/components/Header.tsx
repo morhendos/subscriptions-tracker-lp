@@ -6,9 +6,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { Menu } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
 
@@ -27,6 +30,9 @@ export default function Header() {
     id: string
   ) => {
     e.preventDefault();
+    // Close mobile menu if it's open
+    setIsSheetOpen(false);
+    
     const element = document.getElementById(id);
     if (element) {
       const headerOffset = 80; // Height of the fixed header
@@ -55,6 +61,30 @@ export default function Header() {
     };
   };
 
+  // Navigation Links configuration for reuse in both desktop and mobile menus
+  const navigationLinks = [
+    { 
+      label: "Features", 
+      ...getNavigationProps("features")
+    },
+    { 
+      label: "Testimonials", 
+      ...getNavigationProps("testimonials")
+    },
+    { 
+      label: "FAQ", 
+      ...getNavigationProps("faq")
+    },
+    { 
+      label: "Pricing", 
+      href: "/pricing",
+    },
+    { 
+      label: "Login", 
+      href: "https://app.subscriptions-tracker.com/login",
+    }
+  ];
+
   return (
     <header
       className={cn(
@@ -77,42 +107,18 @@ export default function Header() {
             />
           </Link>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              {...getNavigationProps("features")}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              Features
-            </Link>
-
-            <Link
-              {...getNavigationProps("testimonials")}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              Testimonials
-            </Link>
-            
-            <Link
-              {...getNavigationProps("faq")}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              FAQ
-            </Link>
-            
-            <Link
-              href="/pricing"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              Pricing
-            </Link>
-            
-            <Link
-              href="https://app.subscriptions-tracker.com/login"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              Login
-            </Link>
+            {navigationLinks.map((link, index) => (
+              <Link
+                key={index}
+                href={link.href}
+                onClick={link.onClick}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
             
             <Button asChild>
               <Link href="https://app.subscriptions-tracker.com/signup">
@@ -120,6 +126,42 @@ export default function Header() {
               </Link>
             </Button>
           </nav>
+
+          {/* Mobile Navigation */}
+          <div className="md:hidden">
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Menu">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] sm:w-[350px] pt-16">
+                <nav className="flex flex-col space-y-6">
+                  {navigationLinks.map((link, index) => (
+                    <Link
+                      key={index}
+                      href={link.href}
+                      onClick={link.onClick}
+                      className="text-base text-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  
+                  <div className="pt-4">
+                    <Button asChild className="w-full">
+                      <Link 
+                        href="https://app.subscriptions-tracker.com/signup"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        Get Started
+                      </Link>
+                    </Button>
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>
