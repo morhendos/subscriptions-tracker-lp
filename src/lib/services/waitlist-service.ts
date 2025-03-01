@@ -1,5 +1,9 @@
-import { Collection, Db, ObjectId } from 'mongodb';
-import clientPromise from '../db/mongodb';
+import connectToDatabase from '../db/mongodb';
+
+// Types (we'll define them here since we're no longer importing directly)
+interface ObjectId {
+  toString(): string;
+}
 
 export interface WaitlistEntry {
   _id?: ObjectId;
@@ -35,10 +39,9 @@ export class WaitlistService {
   /**
    * Get the waitlist collection
    */
-  private static async getCollection(): Promise<Collection<WaitlistEntry>> {
-    const client = await clientPromise;
-    const db: Db = client.db(this.DB_NAME);
-    return db.collection<WaitlistEntry>(this.COLLECTION_NAME);
+  private static async getCollection() {
+    const { db } = await connectToDatabase();
+    return db.collection(this.COLLECTION_NAME);
   }
   
   /**
