@@ -9,6 +9,7 @@ A modern landing page for the Subscription Tracker application, built with Next.
 - 🌙 Dark mode support
 - ⚡ Optimized performance
 - 🤖 Search engine friendly
+- 📊 Analytics integration (Google Analytics & Microsoft Clarity)
 
 ## Tech Stack
 
@@ -31,18 +32,24 @@ git clone https://github.com/morhendos/subscriptions-tracker-lp.git
 npm install
 ```
 
-3. Run the development server:
+3. Set up environment variables:
+```bash
+cp .env.local.example .env.local
+```
+Then edit `.env.local` to add your Google Analytics and Microsoft Clarity IDs.
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
 ```
 src/
-├── app/                  # Next.js App Router pages
+├── app/                 # Next.js App Router pages
 ├── components/          # React components
 ├── lib/                 # Utilities and helpers
 ├── config/             # Configuration files
@@ -58,6 +65,28 @@ src/
 - OpenGraph and Twitter cards
 
 For detailed SEO documentation, see [SEO-IMPROVEMENTS.md](./docs/SEO-IMPROVEMENTS.md).
+
+## Analytics
+
+The landing page integrates with both Google Analytics 4 and Microsoft Clarity for comprehensive visitor tracking and user behavior analysis.
+
+### Google Analytics
+- Page view tracking
+- Event tracking
+- User journey analysis
+- Conversion tracking
+
+### Microsoft Clarity
+- Heatmaps
+- Session recordings
+- User behavior insights
+- Performance metrics
+
+To configure analytics, set the following environment variables:
+```
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_CLARITY_PROJECT_ID=xxxxxxxxxx
+```
 
 ## Components
 
@@ -107,6 +136,9 @@ The site automatically deploys to production when changes are pushed to the main
 
 ```env
 NEXT_PUBLIC_BASE_URL=https://subscriptions-tracker.com
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_CLARITY_PROJECT_ID=xxxxxxxxxx
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=xxxxxxxxxxxx
 ```
 
 ## Scripts
