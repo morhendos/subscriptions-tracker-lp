@@ -10,12 +10,14 @@ A modern landing page for the Subscription Tracker application, built with Next.
 - ⚡ Optimized performance
 - 🤖 Search engine friendly
 - 📊 Analytics integration (Google Analytics & Microsoft Clarity)
+- 📝 Waitlist system with MongoDB database
 
 ## Tech Stack
 
 - Next.js 14
 - TypeScript
 - React
+- MongoDB
 - shadcn/ui
 - Tailwind CSS
 - Radix UI primitives
@@ -34,9 +36,9 @@ npm install
 
 3. Set up environment variables:
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
-Then edit `.env.local` to add your Google Analytics and Microsoft Clarity IDs.
+Then edit `.env.local` to add your MongoDB connection string, API keys, and analytics IDs.
 
 4. Run the development server:
 ```bash
@@ -49,12 +51,38 @@ npm run dev
 
 ```
 src/
-├── app/                 # Next.js App Router pages
-├── components/          # React components
-├── lib/                 # Utilities and helpers
-├── config/             # Configuration files
-└── types/              # TypeScript type definitions
+├── app/             # Next.js App Router pages and API routes
+├── components/      # React components
+├── lib/             # Utilities and helpers
+│   ├── db/          # Database client and utilities
+│   └── services/    # Business logic services
+├── config/          # Configuration files
+└── types/           # TypeScript type definitions
 ```
+
+## Waitlist Database
+
+The waitlist system uses MongoDB to store and manage user registrations.
+
+### Features
+
+- Email validation and duplicate checking
+- User metadata capture (IP, user agent, referrer)
+- UTM parameter tracking
+- Status management (active, contacted, converted)
+- Tagging system
+- Comprehensive statistics API
+
+### API Endpoints
+
+- `POST /api/waitlist` - Add a user to the waitlist
+- `GET /api/waitlist?email=user@example.com` - Check if an email is registered
+- `GET /api/waitlist/stats` - Get waitlist statistics (protected)
+
+### MongoDB Collections
+
+The waitlist database contains the following collections:
+- `waitlist` - Stores user information including email, name, registration timestamp, and metadata
 
 ## SEO Features
 
@@ -95,6 +123,7 @@ NEXT_PUBLIC_CLARITY_PROJECT_ID=xxxxxxxxxx
 - Feature highlights
 - Testimonial cards
 - Social proof section
+- Waitlist signup form
 
 ### UI Components
 We use shadcn/ui components including:
@@ -102,6 +131,7 @@ We use shadcn/ui components including:
 - Buttons
 - Stars
 - Avatars
+- Forms
 
 ## Development
 
@@ -119,6 +149,11 @@ We use shadcn/ui components including:
 
 The site automatically deploys to production when changes are pushed to the main branch.
 
+### Database Setup for Production
+1. Create a MongoDB Atlas cluster (free tier is sufficient for most waitlists)
+2. Set the `MONGODB_URI` environment variable in your hosting platform
+3. The database and collections will be created automatically on first use
+
 ## Contributing
 
 1. Create a feature branch from `main`
@@ -131,10 +166,16 @@ The site automatically deploys to production when changes are pushed to the main
 - [SEO Improvements](./docs/SEO-IMPROVEMENTS.md)
 - [Component Library](https://ui.shadcn.com/)
 - [Next.js Documentation](https://nextjs.org/docs)
+- [MongoDB Documentation](https://www.mongodb.com/docs/)
 
 ## Environment Variables
 
 ```env
+# Database
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/subscriptions-tracker
+ADMIN_API_KEY=your-admin-api-key
+
+# Analytics
 NEXT_PUBLIC_BASE_URL=https://subscriptions-tracker.com
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 NEXT_PUBLIC_CLARITY_PROJECT_ID=xxxxxxxxxx
