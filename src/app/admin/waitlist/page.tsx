@@ -27,11 +27,16 @@ import {
   Users, 
   CheckCircle, 
   DollarSign,
-  MailCheck 
+  MailCheck,
+  Loader2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/components/ui/use-toast';
+
+// Mock API key for development
+const ADMIN_API_KEY = 'admin-secret-key';
 
 export default function WaitlistAdmin() {
   const [entries, setEntries] = useState<WaitlistEntryWithId[]>([]);
@@ -46,14 +51,29 @@ export default function WaitlistAdmin() {
   });
   
   const router = useRouter();
+  const { toast } = useToast();
   
   // Fetch waitlist entries
   useEffect(() => {
     const fetchEntries = async () => {
       try {
-        // This will be implemented with a real API endpoint
-        // For now we'll use dummy data
         setLoading(true);
+        
+        // In production, this would use real API
+        // For now, simulate the call with dummy data
+        
+        // Commented out for now - would be used in production
+        // const response = await fetch('/api/admin/waitlist', {
+        //   headers: { 'x-api-key': ADMIN_API_KEY }
+        // });
+        // 
+        // if (!response.ok) {
+        //   throw new Error('Failed to fetch waitlist entries');
+        // }
+        // 
+        // const data = await response.json();
+        // setEntries(data.entries);
+        // setStats(data.stats);
         
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -107,13 +127,19 @@ export default function WaitlistAdmin() {
       } catch (err) {
         setError('Failed to load waitlist entries');
         console.error(err);
+        
+        toast({
+          title: 'Error',
+          description: 'Failed to load waitlist data',
+          variant: 'destructive'
+        });
       } finally {
         setLoading(false);
       }
     };
     
     fetchEntries();
-  }, []);
+  }, [toast]);
   
   // Filter entries based on search query
   const filteredEntries = entries.filter(entry => {
@@ -129,8 +155,17 @@ export default function WaitlistAdmin() {
   // Toggle contacted status
   const toggleContacted = async (id: string, currentValue: boolean) => {
     try {
-      // This will call an API endpoint to update in production
-      // For now just update the local state
+      // In production, this would use real API call:
+      // await fetch('/api/admin/waitlist', {
+      //   method: 'PATCH',
+      //   headers: { 
+      //     'Content-Type': 'application/json',
+      //     'x-api-key': ADMIN_API_KEY
+      //   },
+      //   body: JSON.stringify({ id, contacted: !currentValue })
+      // });
+      
+      // For now, just update local state
       setEntries(prev => 
         prev.map(entry => 
           entry.id === id 
@@ -138,16 +173,47 @@ export default function WaitlistAdmin() {
             : entry
         )
       );
+      
+      // Update stats
+      setStats(prev => {
+        const newContacted = currentValue 
+          ? prev.contacted - 1 
+          : prev.contacted + 1;
+        
+        return {
+          ...prev,
+          contacted: newContacted
+        };
+      });
+      
+      toast({
+        title: 'Updated',
+        description: `Marked ${currentValue ? 'not contacted' : 'contacted'}`,
+      });
     } catch (err) {
       console.error('Failed to update entry', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update entry',
+        variant: 'destructive'
+      });
     }
   };
   
   // Toggle converted status
   const toggleConverted = async (id: string, currentValue: boolean) => {
     try {
-      // This will call an API endpoint to update in production
-      // For now just update the local state
+      // In production, this would use real API call:
+      // await fetch('/api/admin/waitlist', {
+      //   method: 'PATCH',
+      //   headers: { 
+      //     'Content-Type': 'application/json',
+      //     'x-api-key': ADMIN_API_KEY
+      //   },
+      //   body: JSON.stringify({ id, convertedToCustomer: !currentValue })
+      // });
+      
+      // For now, just update local state
       setEntries(prev => 
         prev.map(entry => 
           entry.id === id 
@@ -155,8 +221,30 @@ export default function WaitlistAdmin() {
             : entry
         )
       );
+      
+      // Update stats
+      setStats(prev => {
+        const newConverted = currentValue 
+          ? prev.converted - 1 
+          : prev.converted + 1;
+        
+        return {
+          ...prev,
+          converted: newConverted
+        };
+      });
+      
+      toast({
+        title: 'Updated',
+        description: `Marked ${currentValue ? 'not converted' : 'converted to customer'}`,
+      });
     } catch (err) {
       console.error('Failed to update entry', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update entry',
+        variant: 'destructive'
+      });
     }
   };
   
@@ -177,7 +265,7 @@ export default function WaitlistAdmin() {
     
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
     
     // Create download
@@ -190,6 +278,11 @@ export default function WaitlistAdmin() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    toast({
+      title: 'Export complete',
+      description: 'CSV file downloaded successfully',
+    });
   };
   
   const formatDate = (date: Date) => {
@@ -277,7 +370,7 @@ export default function WaitlistAdmin() {
       </div>
       
       <Tabs defaultValue="all">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
           <TabsList>
             <TabsTrigger value="all">All Entries</TabsTrigger>
             <TabsTrigger value="not-contacted">Not Contacted</TabsTrigger>
@@ -296,7 +389,7 @@ export default function WaitlistAdmin() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" onClick={exportToCsv}>
+            <Button variant="outline" onClick={exportToCsv} disabled={entries.length === 0 || loading}>
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
@@ -371,7 +464,12 @@ function WaitlistTable({
   toggleConverted
 }: WaitlistTableProps) {
   if (loading) {
-    return <div className="py-20 text-center text-muted-foreground">Loading waitlist data...</div>;
+    return (
+      <div className="py-20 flex justify-center items-center text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin mr-2" />
+        <span>Loading waitlist data...</span>
+      </div>
+    );
   }
   
   if (entries.length === 0) {
@@ -379,54 +477,56 @@ function WaitlistTable({
   }
   
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Source</TableHead>
-          <TableHead>Interests</TableHead>
-          <TableHead>Contacted</TableHead>
-          <TableHead>Converted</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {entries.map((entry) => (
-          <TableRow key={entry.id}>
-            <TableCell className="font-medium">{entry.name}</TableCell>
-            <TableCell>{entry.email}</TableCell>
-            <TableCell>{formatDate(entry.createdAt)}</TableCell>
-            <TableCell>
-              <Badge variant="outline">{entry.source}</Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex flex-wrap gap-1">
-                {entry.interests && entry.interests.map(interest => (
-                  <Badge key={interest} variant="secondary" className="text-xs">
-                    {interest}
-                  </Badge>
-                ))}
-                {(!entry.interests || entry.interests.length === 0) && (
-                  <span className="text-muted-foreground text-xs">None specified</span>
-                )}
-              </div>
-            </TableCell>
-            <TableCell>
-              <Switch 
-                checked={entry.contacted} 
-                onCheckedChange={() => toggleContacted(entry.id, entry.contacted)} 
-              />
-            </TableCell>
-            <TableCell>
-              <Switch 
-                checked={entry.convertedToCustomer} 
-                onCheckedChange={() => toggleConverted(entry.id, entry.convertedToCustomer)} 
-              />
-            </TableCell>
+    <div className="overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Source</TableHead>
+            <TableHead>Interests</TableHead>
+            <TableHead>Contacted</TableHead>
+            <TableHead>Converted</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {entries.map((entry) => (
+            <TableRow key={entry.id}>
+              <TableCell className="font-medium">{entry.name}</TableCell>
+              <TableCell>{entry.email}</TableCell>
+              <TableCell>{formatDate(entry.createdAt)}</TableCell>
+              <TableCell>
+                <Badge variant="outline">{entry.source}</Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {entry.interests && entry.interests.map(interest => (
+                    <Badge key={interest} variant="secondary" className="text-xs">
+                      {interest}
+                    </Badge>
+                  ))}
+                  {(!entry.interests || entry.interests.length === 0) && (
+                    <span className="text-muted-foreground text-xs">None specified</span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <Switch 
+                  checked={entry.contacted} 
+                  onCheckedChange={() => toggleContacted(entry.id, entry.contacted)} 
+                />
+              </TableCell>
+              <TableCell>
+                <Switch 
+                  checked={entry.convertedToCustomer} 
+                  onCheckedChange={() => toggleConverted(entry.id, entry.convertedToCustomer)} 
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
