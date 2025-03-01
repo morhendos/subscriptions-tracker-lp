@@ -1,4 +1,15 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+// We need to use dynamic import for mongodb with Next.js
+let MongoClient: any;
+let ServerApiVersion: any;
+
+// Only import MongoDB in server contexts
+if (typeof window === 'undefined') {
+  // This is a server-side only import
+  import('mongodb').then((mongodb) => {
+    MongoClient = mongodb.MongoClient;
+    ServerApiVersion = mongodb.ServerApiVersion;
+  });
+}
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Please add MONGODB_URI to your environment variables');
@@ -7,39 +18,38 @@ if (!process.env.MONGODB_URI) {
 const uri = process.env.MONGODB_URI;
 
 // Global variable to store the connection
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let client: any;
+let clientPromise: Promise<any>;
 
-if (process.env.NODE_ENV === 'development') {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>;
-  };
+// Cache the MongoDB connection in development
+const MONGODB_URI = process.env.MONGODB_URI;
 
-  if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(uri, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-      }
-    });
-    globalWithMongo._mongoClientPromise = client.connect();
-  }
-  clientPromise = globalWithMongo._mongoClientPromise;
-} else {
-  // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, {
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    }
-  });
-  clientPromise = client.connect();
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-// Export a module-scoped MongoClient promise. By doing this in a
-// separate module, the client can be shared across functions.
-export default clientPromise;
+let cachedClient: any = null;
+let cachedDb: any = null;
+
+async function connectToDatabase() {
+  // Check the cached connection
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
+  }
+
+  // Import MongoDB dynamically
+  const { MongoClient } = await import('mongodb');
+  
+  // Connect to the database
+  const client = await MongoClient.connect(MONGODB_URI as string);
+  
+  const db = client.db('subscriptions-tracker');
+  
+  // Cache the connection
+  cachedClient = client;
+  cachedDb = db;
+  
+  return { client, db };
+}
+
+export default connectToDatabase;
