@@ -27,7 +27,13 @@ subscription-tracker/
 │   ├── app
 │   │   ├── about
 │   │   │   └── page.tsx
+│   │   ├── api
+│   │   │   └── test
+│   │   │       └── route.ts
 │   │   ├── blog
+│   │   │   ├── [slug]
+│   │   │   │   ├── not-found.tsx
+│   │   │   │   └── page.tsx
 │   │   │   └── page.tsx
 │   │   ├── careers
 │   │   │   └── page.tsx
@@ -56,6 +62,7 @@ subscription-tracker/
 │   │   └── terms
 │   │       └── page.tsx
 │   ├── components
+│   │   ├── BlogArticle.tsx
 │   │   ├── CTAButton.tsx
 │   │   ├── FAQ.tsx
 │   │   ├── Features.tsx
@@ -121,15 +128,24 @@ subscription-tracker/
 │   ├── config
 │   │   ├── constants.ts
 │   │   └── pricing.ts
+│   ├── content
+│   │   ├── audit-subscriptions-guide.ts
+│   │   ├── family-subscription-sharing.ts
+│   │   ├── psychology-subscription-fatigue.ts
+│   │   ├── subscription-services-overpaying.ts
+│   │   └── subscription-trends-2025.ts
 │   ├── hooks
 │   │   ├── use-mobile.tsx
 │   │   └── use-toast.ts
 │   ├── index.css
 │   ├── lib
+│   │   ├── blog.ts
 │   │   ├── schema
 │   │   │   └── index.ts
 │   │   └── utils.ts
-│   └── main.tsx
+│   ├── main.tsx
+│   └── types
+│       └── blog.ts
 ├── tailwind.config.ts
 ├── tree.txt
 ├── tsconfig.app.json
