@@ -1,4 +1,5 @@
 subscription-tracker/
+├── CHANGELOG.md
 ├── README.md
 ├── bun.lockb
 ├── components.json
@@ -6,7 +7,8 @@ subscription-tracker/
 │   ├── COMPONENTS.md
 │   ├── CONTRIBUTING.md
 │   ├── ROADMAP.md
-│   └── SEO-IMPROVEMENTS.md
+│   ├── SEO-IMPROVEMENTS.md
+│   └── SUBSCRIPTION-PLAN.md
 ├── eslint.config.js
 ├── index.html
 ├── next-env.d.ts
@@ -14,6 +16,8 @@ subscription-tracker/
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.cjs
+├── prisma
+│   └── schema.prisma
 ├── public
 │   ├── favicon.ico
 │   ├── logo-st.svg
@@ -27,9 +31,21 @@ subscription-tracker/
 │   ├── app
 │   │   ├── about
 │   │   │   └── page.tsx
+│   │   ├── admin
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── waitlist
+│   │   │       └── page.tsx
 │   │   ├── api
-│   │   │   └── test
-│   │   │       └── route.ts
+│   │   │   ├── admin
+│   │   │   │   └── waitlist
+│   │   │   │       └── route.ts
+│   │   │   ├── test
+│   │   │   │   └── route.ts
+│   │   │   └── waitlist
+│   │   │       ├── route.ts
+│   │   │       └── stats
+│   │   │           └── route.ts
 │   │   ├── blog
 │   │   │   ├── [slug]
 │   │   │   │   ├── not-found.tsx
@@ -59,11 +75,15 @@ subscription-tracker/
 │   │   │   └── page.tsx
 │   │   ├── robots.ts
 │   │   ├── sitemap.ts
-│   │   └── terms
+│   │   ├── terms
+│   │   │   └── page.tsx
+│   │   └── waitlist
 │   │       └── page.tsx
 │   ├── components
+│   │   ├── Analytics.tsx
 │   │   ├── BlogArticle.tsx
 │   │   ├── CTAButton.tsx
+│   │   ├── ComingSoonModal.tsx
 │   │   ├── FAQ.tsx
 │   │   ├── Features.tsx
 │   │   ├── Footer.tsx
@@ -71,10 +91,12 @@ subscription-tracker/
 │   │   ├── Header.tsx
 │   │   ├── Hero.tsx
 │   │   ├── HeroTestimonials.tsx
+│   │   ├── PremiumFeatureGate.tsx
 │   │   ├── PricingSection.tsx
 │   │   ├── SchemaOrg.tsx
 │   │   ├── TestimonialCard.tsx
 │   │   ├── Testimonials.tsx
+│   │   ├── WaitlistForm.tsx
 │   │   └── ui
 │   │       ├── accordion.tsx
 │   │       ├── alert-dialog.tsx
@@ -127,6 +149,7 @@ subscription-tracker/
 │   │       └── use-toast.ts
 │   ├── config
 │   │   ├── constants.ts
+│   │   ├── features.ts
 │   │   └── pricing.ts
 │   ├── content
 │   │   ├── audit-subscriptions-guide.ts
@@ -140,12 +163,18 @@ subscription-tracker/
 │   ├── index.css
 │   ├── lib
 │   │   ├── blog.ts
+│   │   ├── database.ts
 │   │   ├── schema
 │   │   │   └── index.ts
-│   │   └── utils.ts
+│   │   ├── services
+│   │   │   └── waitlist-service.ts
+│   │   ├── utils.ts
+│   │   └── validations
+│   │       └── waitlist-schema.ts
 │   ├── main.tsx
 │   └── types
-│       └── blog.ts
+│       ├── blog.ts
+│       └── waitlist.ts
 ├── tailwind.config.ts
 ├── tree.txt
 ├── tsconfig.app.json
