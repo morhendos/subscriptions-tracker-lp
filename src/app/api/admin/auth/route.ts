@@ -12,21 +12,30 @@ import {
  * POST /api/admin/auth - Admin login
  */
 export async function POST(req: NextRequest) {
+  console.log("POST /api/admin/auth - Processing admin login request");
+  
   try {
-    const { email, password } = await req.json();
+    // Parse the request body
+    const body = await req.json();
+    console.log("Login attempt for email:", body.email);
     
-    // Validate inputs
+    // Check required fields
+    const { email, password } = body;
     if (!email || !password) {
+      console.log("Missing email or password");
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
       );
     }
     
-    // Authenticate the admin
+    // Try to authenticate
+    console.log("Authenticating admin user...");
     const result = await authenticateAdmin(email, password);
+    console.log("Authentication result:", result);
     
     if (!result.authenticated || !result.sessionToken) {
+      console.log("Authentication failed");
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
@@ -34,6 +43,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Set a cookie with the session token
+    console.log("Setting session cookie");
     const cookieStore = cookies();
     cookieStore.set('admin_session', result.sessionToken, {
       httpOnly: true,
@@ -45,6 +55,7 @@ export async function POST(req: NextRequest) {
     
     // Get user information
     const user = result.userId ? await getAdminUser(result.userId) : null;
+    console.log("User data retrieved:", user ? "success" : "failed");
     
     return NextResponse.json({
       success: true,
@@ -59,7 +70,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Admin authentication error:', error);
     return NextResponse.json(
-      { error: 'Authentication failed' },
+      { error: 'Authentication failed', details: String(error) },
       { status: 500 }
     );
   }
@@ -69,38 +80,49 @@ export async function POST(req: NextRequest) {
  * GET /api/admin/auth - Check if the admin is authenticated
  */
 export async function GET(req: NextRequest) {
+  console.log("GET /api/admin/auth - Checking authentication status");
+  
   try {
     // Get the session token from cookies
     const cookieStore = cookies();
     const sessionToken = cookieStore.get('admin_session')?.value;
     
+    console.log("Session token present:", !!sessionToken);
+    
     if (!sessionToken) {
+      console.log("No session token found");
       return NextResponse.json(
-        { authenticated: false },
+        { authenticated: false, reason: "no_session" },
         { status: 401 }
       );
     }
     
     // Verify the session
+    console.log("Verifying session...");
     const { valid, userId } = await verifyAdminSession(sessionToken);
+    console.log("Session valid:", valid, "User ID:", userId);
     
     if (!valid) {
       // Clear the invalid cookie
+      console.log("Session is invalid, clearing cookie");
       cookieStore.set('admin_session', '', {
         expires: new Date(0)
       });
       
       return NextResponse.json(
-        { authenticated: false },
+        { authenticated: false, reason: "invalid_session" },
         { status: 401 }
       );
     }
     
     // Refresh the session to extend its lifetime
+    console.log("Refreshing session...");
     const refreshResult = await refreshAdminSession(sessionToken);
+    console.log("Session refresh result:", refreshResult);
     
     if (refreshResult.success && refreshResult.newToken) {
       // Update the cookie with the new token
+      console.log("Updating session cookie with new token");
       cookieStore.set('admin_session', refreshResult.newToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -111,7 +133,9 @@ export async function GET(req: NextRequest) {
     }
     
     // Get user information
+    console.log("Getting user information...");
     const user = userId ? await getAdminUser(userId) : null;
+    console.log("User found:", !!user);
     
     return NextResponse.json({
       authenticated: true,
@@ -125,7 +149,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Admin session check error:', error);
     return NextResponse.json(
-      { authenticated: false, error: 'Session check failed' },
+      { authenticated: false, error: 'Session check failed', details: String(error) },
       { status: 500 }
     );
   }
@@ -135,17 +159,23 @@ export async function GET(req: NextRequest) {
  * DELETE /api/admin/auth - Admin logout
  */
 export async function DELETE(req: NextRequest) {
+  console.log("DELETE /api/admin/auth - Processing logout request");
+  
   try {
     // Get the session token from cookies
     const cookieStore = cookies();
     const sessionToken = cookieStore.get('admin_session')?.value;
     
+    console.log("Session token present:", !!sessionToken);
+    
     if (sessionToken) {
       // Invalidate the session
+      console.log("Invalidating session...");
       await invalidateAdminSession(sessionToken);
     }
     
     // Clear the cookie
+    console.log("Clearing session cookie");
     cookieStore.set('admin_session', '', {
       expires: new Date(0)
     });
@@ -157,7 +187,7 @@ export async function DELETE(req: NextRequest) {
   } catch (error) {
     console.error('Admin logout error:', error);
     return NextResponse.json(
-      { error: 'Logout failed' },
+      { error: 'Logout failed', details: String(error) },
       { status: 500 }
     );
   }
