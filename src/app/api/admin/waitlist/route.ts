@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { waitlistService } from '@/lib/services/waitlist-service';
 
+// Default admin key (in production, this should be set via environment variables)
+const DEFAULT_ADMIN_KEY = 'admin-secret-key';
+
 // Helper for authentication - basic implementation for now
 // In a real app, you would use a more robust auth system
 const isAuthenticated = async (req: NextRequest): Promise<boolean> => {
   // Simple API key check (in production, use a proper auth system)
   const apiKey = req.headers.get('x-api-key');
-  const validApiKey = process.env.ADMIN_API_KEY;
+  
+  // Use environment variable if set, otherwise fall back to the default key
+  const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Auth check: Received key: ${apiKey}, Valid key: ${validApiKey}`);
+  }
   
   return apiKey === validApiKey;
 };
