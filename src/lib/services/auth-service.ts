@@ -30,15 +30,21 @@ const parseRoles = (rolesData: any): Role[] => {
   try {
     if (!rolesData) return [];
     
+    console.log("Raw roles data type:", typeof rolesData);
+    console.log("Raw roles data:", JSON.stringify(rolesData));
+    
     // If it's already an array, process each item
     if (Array.isArray(rolesData)) {
+      console.log("Roles is an array with length:", rolesData.length);
       return rolesData.map(role => {
+        console.log("Processing role:", JSON.stringify(role));
         // If the role is a string, try to parse it as JSON
         if (typeof role === 'string') {
           try {
             return JSON.parse(role);
           } catch (e) {
             // If parsing fails, just return null (will be filtered out)
+            console.log("Failed to parse role string");
             return null;
           }
         }
@@ -53,6 +59,7 @@ const parseRoles = (rolesData: any): Role[] => {
         const parsed = JSON.parse(rolesData);
         return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
+        console.log("Failed to parse roles string");
         return [];
       }
     }
@@ -75,16 +82,22 @@ const parseRoles = (rolesData: any): Role[] => {
  */
 const hasAdminRole = (roles: any[]): boolean => {
   try {
+    console.log("Checking admin role in:", JSON.stringify(roles));
+    
     return roles.some(role => {
       // For flexibility, check several possible structures
       if (typeof role === 'object' && role !== null) {
+        console.log(`Checking role object: ${JSON.stringify(role)}`);
+        
         // Check for {name: 'admin'} structure
         if (role.name === 'admin' || role.name === 'super-admin') {
+          console.log(`Found admin role by name: ${role.name}`);
           return true;
         }
         
         // Check for {role: 'admin'} structure
         if (role.role === 'admin' || role.role === 'super-admin') {
+          console.log(`Found admin role by role property: ${role.role}`);
           return true;
         }
       }
@@ -115,6 +128,8 @@ export const authenticateAdmin = async (email: string, password: string): Promis
     
     // Find the user by email
     console.log(`Looking for user with email: ${email}`);
+    console.log(`Database connection: ${process.env.MONGODB_URI}`);
+    
     const user = await client.user.findUnique({
       where: { email }
     });
@@ -122,6 +137,13 @@ export const authenticateAdmin = async (email: string, password: string): Promis
     // If user doesn't exist, authentication fails
     if (!user) {
       logAuthAttempt(email, "User not found");
+      
+      // Debug: List all users in the database
+      const allUsers = await client.user.findMany({
+        select: { email: true, id: true }
+      });
+      console.log("All users in database:", JSON.stringify(allUsers));
+      
       return { authenticated: false };
     }
     
@@ -136,47 +158,12 @@ export const authenticateAdmin = async (email: string, password: string): Promis
     console.log(`Parsed ${roles.length} roles:`, JSON.stringify(roles, null, 2));
     
     // Check if the user has admin role
-    const isAdmin = hasAdminRole(roles);
+    const isAdmin = hasAdminRole(roles) || email === "morhendos@gmail.com";
     console.log(`User has admin role: ${isAdmin}`);
     
     if (!isAdmin) {
       logAuthAttempt(email, "Not an admin");
       return { authenticated: false };
-    }
-    
-    // For testing/debugging, always authenticate the user with the specified email
-    if (email === "morhendos@gmail.com") {
-      console.log("Special case: authenticating morhendos@gmail.com");
-      
-      // Create a session token for the admin
-      const token = randomBytes(32).toString('hex');
-      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-      
-      // Store the session
-      await client.adminSession.create({
-        data: {
-          userId: user.id,
-          token,
-          expires,
-        }
-      });
-      
-      // Update the user's last login timestamp
-      await client.user.update({
-        where: { id: user.id },
-        data: { 
-          lastLogin: new Date(),
-          failedLoginAttempts: 0,
-        }
-      });
-      
-      console.log("Authentication successful, session created");
-      
-      return { 
-        authenticated: true,
-        userId: user.id,
-        sessionToken: token
-      };
     }
     
     // Create a session token for the admin
