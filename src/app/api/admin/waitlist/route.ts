@@ -6,7 +6,7 @@ import { verifyAdminSession } from '@/lib/auth-utils';
  * GET /api/admin/waitlist - Get all waitlist entries (admin only)
  */
 export async function GET(req: NextRequest) {
-  // Check authentication using session cookie
+  // Check authentication using session cookie or API key
   if (!verifyAdminSession(req)) {
     return NextResponse.json(
       { error: 'Unauthorized', message: 'Authentication required' },
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
  * PATCH /api/admin/waitlist/:id - Update a waitlist entry (admin only)
  */
 export async function PATCH(req: NextRequest) {
-  // Check authentication using session cookie
+  // Check authentication using session cookie or API key
   if (!verifyAdminSession(req)) {
     return NextResponse.json(
       { error: 'Unauthorized', message: 'Authentication required' },
@@ -80,7 +80,7 @@ export async function PATCH(req: NextRequest) {
  * DELETE /api/admin/waitlist/:id - Delete a waitlist entry (admin only)
  */
 export async function DELETE(req: NextRequest) {
-  // Check authentication using session cookie
+  // Check authentication using session cookie or API key
   if (!verifyAdminSession(req)) {
     return NextResponse.json(
       { error: 'Unauthorized', message: 'Authentication required' },
