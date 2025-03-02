@@ -10,7 +10,7 @@ import {
   generateWebsiteSchema,
 } from "@/lib/schema";
 import Footer from "@/components/Footer";
-import { Analytics } from "@/components/Analytics";
+import Analytics from "@/components/Analytics"; // Changed from named import to default import
 import AnalyticsPageTracker from "@/components/AnalyticsPageTracker";
 import { Toaster } from "@/components/ui/toaster";
 
