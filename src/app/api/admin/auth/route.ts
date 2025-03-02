@@ -64,31 +64,57 @@ export async function GET(req: NextRequest) {
     // Get the session ID from cookies
     const sessionId = cookies().get('admin_session')?.value;
     
-    if (!sessionId || !activeSessions[sessionId]) {
-      // Check if API key is provided as fallback
-      const apiKey = req.headers.get('x-api-key');
-      const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
+    // First authentication method: Session cookie
+    if (sessionId && activeSessions[sessionId]) {
+      // Renew session
+      activeSessions[sessionId].createdAt = new Date();
       
-      if (apiKey === validApiKey) {
-        return NextResponse.json({
-          authenticated: true,
-          method: 'api_key'
-        });
-      }
-      
-      return NextResponse.json(
-        { authenticated: false },
-        { status: 401 }
-      );
+      return NextResponse.json({
+        authenticated: true,
+        method: 'session'
+      });
     }
     
-    // Renew session
-    activeSessions[sessionId].createdAt = new Date();
+    // Second authentication method: API key header (for client-side auth)
+    const apiKey = req.headers.get('x-api-key');
+    const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
     
-    return NextResponse.json({
-      authenticated: true,
-      method: 'session'
-    });
+    if (apiKey === validApiKey) {
+      // Create a new session for this valid API key to improve security going forward
+      const newSessionId = generateSessionId();
+      activeSessions[newSessionId] = { createdAt: new Date() };
+      
+      // Set the cookie
+      cookies().set('admin_session', newSessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: '/',
+        sameSite: 'strict'
+      });
+      
+      return NextResponse.json({
+        authenticated: true,
+        method: 'api_key',
+        upgraded: true // Indicates we upgraded from API key to session
+      });
+    }
+    
+    // Third authentication method: Fallback to checking request context for API key
+    // This is for middleware or server components that might have added this
+    const requestApiKey = (req as any).apiKey;
+    if (requestApiKey === validApiKey) {
+      return NextResponse.json({
+        authenticated: true,
+        method: 'request_context'
+      });
+    }
+    
+    // Not authenticated
+    return NextResponse.json(
+      { authenticated: false },
+      { status: 401 }
+    );
   } catch (error) {
     console.error('Admin session check error:', error);
     return NextResponse.json(
