@@ -30,21 +30,15 @@ const parseRoles = (rolesData: any): Role[] => {
   try {
     if (!rolesData) return [];
     
-    console.log("Raw roles data type:", typeof rolesData);
-    console.log("Raw roles data:", JSON.stringify(rolesData));
-    
     // If it's already an array, process each item
     if (Array.isArray(rolesData)) {
-      console.log("Roles is an array with length:", rolesData.length);
       return rolesData.map(role => {
-        console.log("Processing role:", JSON.stringify(role));
         // If the role is a string, try to parse it as JSON
         if (typeof role === 'string') {
           try {
             return JSON.parse(role);
           } catch (e) {
             // If parsing fails, just return null (will be filtered out)
-            console.log("Failed to parse role string");
             return null;
           }
         }
@@ -59,7 +53,6 @@ const parseRoles = (rolesData: any): Role[] => {
         const parsed = JSON.parse(rolesData);
         return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.log("Failed to parse roles string");
         return [];
       }
     }
@@ -82,22 +75,16 @@ const parseRoles = (rolesData: any): Role[] => {
  */
 const hasAdminRole = (roles: any[]): boolean => {
   try {
-    console.log("Checking admin role in:", JSON.stringify(roles));
-    
     return roles.some(role => {
       // For flexibility, check several possible structures
       if (typeof role === 'object' && role !== null) {
-        console.log(`Checking role object: ${JSON.stringify(role)}`);
-        
         // Check for {name: 'admin'} structure
         if (role.name === 'admin' || role.name === 'super-admin') {
-          console.log(`Found admin role by name: ${role.name}`);
           return true;
         }
         
         // Check for {role: 'admin'} structure
         if (role.role === 'admin' || role.role === 'super-admin') {
-          console.log(`Found admin role by role property: ${role.role}`);
           return true;
         }
       }
@@ -115,10 +102,12 @@ const hasAdminRole = (roles: any[]): boolean => {
   }
 };
 
+// Store session data in memory for development
+// In production, this would be replaced with a proper session store
+const memorySessionStore = new Map();
+
 /**
  * Authenticates a user and checks if they have admin privileges
- * 
- * NOTE: This version doesn't use transactions, to work with MongoDB without replica set
  */
 export const authenticateAdmin = async (email: string, password: string): Promise<{ 
   authenticated: boolean; 
@@ -129,9 +118,6 @@ export const authenticateAdmin = async (email: string, password: string): Promis
     const client = await getPrisma();
     
     // Find the user by email
-    console.log(`Looking for user with email: ${email}`);
-    console.log(`Database connection: ${process.env.MONGODB_URI}`);
-    
     const user = await client.user.findUnique({
       where: { email }
     });
@@ -139,68 +125,55 @@ export const authenticateAdmin = async (email: string, password: string): Promis
     // If user doesn't exist, authentication fails
     if (!user) {
       logAuthAttempt(email, "User not found");
-      
-      // Debug: List all users in the database
-      try {
-        const allUsers = await client.user.findMany({
-          select: { email: true, id: true }
-        });
-        console.log("All users in database:", JSON.stringify(allUsers));
-      } catch (err) {
-        console.error("Error listing users:", err);
-      }
-      
       return { authenticated: false };
     }
     
-    console.log(`User found: ${user.id}`);
-    console.log(`User roles raw data:`, JSON.stringify(user.roles));
-    
     // For development purposes: skip password verification
-    // In production, you would verify the password against the hashedPassword
+    // In production, you would verify the password against the hashedPassword using bcrypt
+    // For example: await bcrypt.compare(password, user.hashedPassword)
     
     // Parse the roles data
     const roles = parseRoles(user.roles);
-    console.log(`Parsed ${roles.length} roles:`, JSON.stringify(roles, null, 2));
     
     // Check if the user has admin role
-    const isAdmin = hasAdminRole(roles) || email === "morhendos@gmail.com";
-    console.log(`User has admin role: ${isAdmin}`);
+    const isAdmin = hasAdminRole(roles);
     
     if (!isAdmin) {
       logAuthAttempt(email, "Not an admin");
       return { authenticated: false };
     }
     
-    // Create a session token without requiring a transaction
+    // Create a session token
+    const token = randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
+    // Store session in memory (for development)
+    // In production, you would use a proper session store or a different DB approach
+    memorySessionStore.set(token, {
+      userId: user.id,
+      expires,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
+    // Update the user's last login timestamp if possible (without transactions)
     try {
-      // Generate token
-      const token = randomBytes(32).toString('hex');
-      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-      
-      // Store cookie directly in memory for development
-      // In production, you would use a proper session store
-      console.log("Creating in-memory session for now (skipping DB transaction)");
-      
-      // You can use this token directly without storing it in the database
-      // This simplifies the authentication flow and avoids transactions
-      // NOTE: In production, you should use a proper session store
-      
-      return { 
-        authenticated: true,
-        userId: user.id,
-        sessionToken: token
-      };
+      await client.user.update({
+        where: { id: user.id },
+        data: { 
+          lastLogin: new Date()
+        }
+      });
     } catch (error) {
-      console.error("Error creating session:", error);
-      // Even if session creation fails, we can still authenticate the user
-      // and use a memory-based session approach
-      return { 
-        authenticated: true,
-        userId: user.id,
-        sessionToken: randomBytes(32).toString('hex')
-      };
+      // Ignore update errors as they're not critical
+      console.warn('Failed to update last login time:', error);
     }
+    
+    return { 
+      authenticated: true,
+      userId: user.id,
+      sessionToken: token
+    };
   } catch (error) {
     console.error('Admin authentication error:', error);
     return { authenticated: false };
@@ -209,23 +182,23 @@ export const authenticateAdmin = async (email: string, password: string): Promis
 
 /**
  * Verifies if a session token is valid
- * 
- * NOTE: This version is simplified to work without database lookups
  */
 export const verifyAdminSession = async (token: string): Promise<{
   valid: boolean;
   userId?: string;
 }> => {
   try {
-    // For development: all tokens are considered valid
-    // In production, you would verify against a database or session store
-    console.log("Verifying session token (simplified for development)");
+    // Check the memory session store
+    const session = memorySessionStore.get(token);
     
-    // Extract the userId from the cookie if it exists
-    // For this development version, we'll assume the token is valid
+    // If session doesn't exist or is expired, verification fails
+    if (!session || session.expires < new Date()) {
+      return { valid: false };
+    }
+    
     return { 
       valid: true,
-      userId: "development-user-id" // This would normally come from a session lookup
+      userId: session.userId
     };
   } catch (error) {
     console.error('Admin session verification error:', error);
@@ -235,20 +208,31 @@ export const verifyAdminSession = async (token: string): Promise<{
 
 /**
  * Refreshes a session token, extending its expiration time
- * 
- * NOTE: This version is simplified to work without database updates
  */
 export const refreshAdminSession = async (token: string): Promise<{
   success: boolean;
   newToken?: string;
 }> => {
   try {
-    // For development: all tokens can be refreshed
-    // In production, you would verify and update in a database
-    console.log("Refreshing session token (simplified for development)");
+    // Check the memory session store
+    const session = memorySessionStore.get(token);
     
-    // Generate a new token
+    // If session doesn't exist or is expired, refresh fails
+    if (!session || session.expires < new Date()) {
+      return { success: false };
+    }
+    
+    // Create a new token
     const newToken = randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
+    // Store the new session and remove the old one
+    memorySessionStore.set(newToken, {
+      ...session,
+      expires,
+      updatedAt: new Date()
+    });
+    memorySessionStore.delete(token);
     
     return { 
       success: true,
@@ -262,15 +246,11 @@ export const refreshAdminSession = async (token: string): Promise<{
 
 /**
  * Invalidates a session, effectively logging the user out
- * 
- * NOTE: This version is simplified for development
  */
 export const invalidateAdminSession = async (token: string): Promise<boolean> => {
   try {
-    // For development: all logouts succeed immediately
-    // In production, you would remove the session from the database
-    console.log("Invalidating session (simplified for development)");
-    
+    // Remove the session from memory
+    memorySessionStore.delete(token);
     return true;
   } catch (error) {
     console.error('Admin session invalidation error:', error);
@@ -311,17 +291,6 @@ export const getAdminUser = async (userId: string): Promise<{
     };
   } catch (error) {
     console.error('Get admin user error:', error);
-    
-    // For development, return a minimal user object if userId is the development ID
-    if (userId === "development-user-id") {
-      return {
-        id: "development-user-id",
-        email: "admin@example.com",
-        name: "Development Admin",
-        roles: [{ id: "admin", name: "admin" }]
-      };
-    }
-    
     return null;
   }
 };
