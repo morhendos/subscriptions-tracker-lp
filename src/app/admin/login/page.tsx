@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, ShieldAlert, KeyRound, InfoIcon } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
@@ -113,13 +112,15 @@ export default function AdminLogin() {
                   Login
                 </Button>
                 
-                <Alert className="mt-4 bg-blue-50">
-                  <InfoIcon className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-xs text-blue-700">
-                    Your admin key will also be securely stored as a fallback authentication method.
-                    This helps with session issues in serverless environments.
-                  </AlertDescription>
-                </Alert>
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded px-4 py-3">
+                  <div className="flex items-start">
+                    <InfoIcon className="h-4 w-4 text-blue-600 mt-0.5 mr-2" />
+                    <p className="text-xs text-blue-700">
+                      Your admin key will also be securely stored as a fallback authentication method.
+                      This helps with session issues in serverless environments.
+                    </p>
+                  </div>
+                </div>
               </div>
             </form>
           </CardContent>
