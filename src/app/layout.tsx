@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { SchemaOrg } from "@/components/SchemaOrg";
 import Header from "@/components/Header";
@@ -9,7 +10,8 @@ import {
   generateWebsiteSchema,
 } from "@/lib/schema";
 import Footer from "@/components/Footer";
-import Analytics from "@/components/Analytics";
+import { Analytics } from "@/components/Analytics";
+import AnalyticsPageTracker from "@/components/AnalyticsPageTracker";
 import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -134,7 +136,7 @@ export default function RootLayout({
         <SchemaOrg schema={softwareAppSchema} />
         <SchemaOrg schema={organizationSchema} />
         <SchemaOrg schema={websiteSchema} />
-        {/* Analytics Scripts */}
+        {/* Analytics Scripts - these don't use client hooks so they're safe in head */}
         <Analytics 
           googleAnalyticsId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
           microsoftClarityId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID}
@@ -142,6 +144,14 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Header />
+        
+        {/* Suspense boundary for client component that uses useSearchParams */}
+        <Suspense fallback={null}>
+          <AnalyticsPageTracker 
+            googleAnalyticsId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+          />
+        </Suspense>
+        
         {children}
         <Footer />
         <Toaster />
