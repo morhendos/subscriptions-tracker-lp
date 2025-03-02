@@ -1,12 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { waitlistService } from '@/lib/services/waitlist-service';
+import { DEFAULT_ADMIN_KEY, FEATURES } from '@/lib/constants';
 
 // Helper for authentication - basic implementation for now
 // In a real app, you would use a more robust auth system
 const isAuthenticated = async (req: NextRequest): Promise<boolean> => {
-  // Simple API key check (in production, use a proper auth system)
+  // If we're in development mode and auth bypass is enabled, always authenticate
+  if (FEATURES.BYPASS_ADMIN_AUTH) {
+    console.log('Development mode: Bypassing authentication');
+    return true;
+  }
+
+  // Simple API key check
   const apiKey = req.headers.get('x-api-key');
-  const validApiKey = process.env.ADMIN_API_KEY;
+  
+  // Use environment variable if set, otherwise fall back to the default key
+  const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
+  
+  // In development, log the authentication details (but not in production)
+  if (FEATURES.DEBUG_MODE) {
+    console.log('Auth check details:');
+    console.log(`- Received key: ${apiKey ? '[present]' : '[missing]'}`);
+    console.log(`- Using env var: ${process.env.ADMIN_API_KEY ? 'Yes' : 'No (using default)'}`);
+  }
   
   return apiKey === validApiKey;
 };
@@ -18,7 +34,7 @@ export async function GET(req: NextRequest) {
   // Check authentication
   if (!await isAuthenticated(req)) {
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Unauthorized', message: 'Invalid or missing API key' },
       { status: 401 }
     );
   }
@@ -48,7 +64,7 @@ export async function PATCH(req: NextRequest) {
   // Check authentication
   if (!await isAuthenticated(req)) {
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Unauthorized', message: 'Invalid or missing API key' },
       { status: 401 }
     );
   }
@@ -92,7 +108,7 @@ export async function DELETE(req: NextRequest) {
   // Check authentication
   if (!await isAuthenticated(req)) {
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Unauthorized', message: 'Invalid or missing API key' },
       { status: 401 }
     );
   }
