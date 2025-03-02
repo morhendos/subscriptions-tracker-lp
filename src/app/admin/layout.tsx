@@ -16,23 +16,42 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   
+  // Get stored API key once on mount
+  const [adminKey] = useState(() => {
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('admin_key');
+    }
+    return null;
+  });
+  
   // Check authentication status
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/admin/auth');
-        const data = await response.json();
-        
-        setIsAuthenticated(data.authenticated);
-        
-        // If not authenticated and not on login page, redirect to login
-        if (!data.authenticated && pathname !== '/admin/login') {
-          router.push('/admin/login');
+        // Prepare headers - use API key if available
+        const headers: HeadersInit = {};
+        if (adminKey) {
+          headers['x-api-key'] = adminKey;
         }
         
-        // If authenticated and on login page, redirect to admin dashboard
-        if (data.authenticated && pathname === '/admin/login') {
-          router.push('/admin');
+        const response = await fetch('/api/admin/auth', { headers });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setIsAuthenticated(data.authenticated === true);
+          
+          // If authenticated and on login page, redirect to admin dashboard
+          if (data.authenticated === true && pathname === '/admin/login') {
+            router.push('/admin');
+          }
+        } else {
+          setIsAuthenticated(false);
+          
+          // If not authenticated and not on login page, redirect to login
+          if (pathname !== '/admin/login') {
+            router.push('/admin/login');
+          }
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -47,7 +66,7 @@ export default function AdminLayout({
     };
     
     checkAuth();
-  }, [pathname, router]);
+  }, [pathname, router, adminKey]);
   
   // Handle logout
   const handleLogout = async () => {
@@ -55,6 +74,9 @@ export default function AdminLayout({
       await fetch('/api/admin/auth', {
         method: 'DELETE'
       });
+      
+      // Also clear localStorage for the API key
+      localStorage.removeItem('admin_key');
       
       setIsAuthenticated(false);
       router.push('/admin/login');
