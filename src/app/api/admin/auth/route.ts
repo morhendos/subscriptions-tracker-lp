@@ -45,22 +45,30 @@ export async function POST(req: NextRequest) {
     // Set a cookie with the session token
     console.log("Setting session cookie");
     const cookieStore = cookies();
+    
+    // Use a long expiration to help with persistence
+    const expiresIn = 30 * 24 * 60 * 60; // 30 days in seconds
+    
     cookieStore.set('admin_session', result.sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: expiresIn, 
       path: '/',
-      sameSite: 'strict'
+      sameSite: 'lax' // Changed from 'strict' to 'lax' to help with redirects
     });
     
     // Get user information
     const user = result.userId ? await getAdminUser(result.userId) : null;
     console.log("User data retrieved:", user ? "success" : "failed");
     
+    // Debug information
+    console.log("Cookie set with name: admin_session");
+    console.log("Cookie value (first 10 chars):", result.sessionToken?.substring(0, 10) + "...");
+    console.log("Cookie maxAge:", expiresIn);
+    
     return NextResponse.json({
       success: true,
       message: 'Authentication successful',
-      sessionToken: result.sessionToken, // Send token back to store in localStorage
       user: user ? {
         id: user.id,
         email: user.email,
@@ -89,6 +97,13 @@ export async function GET(req: NextRequest) {
     const sessionToken = cookieStore.get('admin_session')?.value;
     
     console.log("Session token present:", !!sessionToken);
+    if (sessionToken) {
+      console.log("Session token (first 10 chars):", sessionToken.substring(0, 10) + "...");
+    }
+    
+    // Debug: show all cookies
+    const allCookies = cookieStore.getAll();
+    console.log("All cookies:", allCookies.map(c => c.name));
     
     if (!sessionToken) {
       console.log("No session token found");
@@ -116,22 +131,8 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    // Refresh the session to extend its lifetime
-    console.log("Refreshing session...");
-    const refreshResult = await refreshAdminSession(sessionToken);
-    console.log("Session refresh result:", refreshResult);
-    
-    if (refreshResult.success && refreshResult.newToken) {
-      // Update the cookie with the new token
-      console.log("Updating session cookie with new token");
-      cookieStore.set('admin_session', refreshResult.newToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24, // 24 hours
-        path: '/',
-        sameSite: 'strict'
-      });
-    }
+    // Don't try to refresh the session for now - that was causing issues
+    // Just keep using the same token
     
     // Get user information
     console.log("Getting user information...");
@@ -140,7 +141,6 @@ export async function GET(req: NextRequest) {
     
     return NextResponse.json({
       authenticated: true,
-      token: refreshResult.newToken || sessionToken, // Send token back for localStorage
       user: user ? {
         id: user.id,
         email: user.email,
@@ -179,7 +179,8 @@ export async function DELETE(req: NextRequest) {
     // Clear the cookie
     console.log("Clearing session cookie");
     cookieStore.set('admin_session', '', {
-      expires: new Date(0)
+      expires: new Date(0),
+      path: '/'
     });
     
     return NextResponse.json({
