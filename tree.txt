@@ -1,4 +1,5 @@
 subscription-tracker/
+├── ANALYTICS.md
 ├── CHANGELOG.md
 ├── README.md
 ├── bun.lockb
@@ -81,6 +82,7 @@ subscription-tracker/
 │   │       └── page.tsx
 │   ├── components
 │   │   ├── Analytics.tsx
+│   │   ├── AnalyticsPageTracker.tsx
 │   │   ├── BlogArticle.tsx
 │   │   ├── CTAButton.tsx
 │   │   ├── ComingSoonModal.tsx
