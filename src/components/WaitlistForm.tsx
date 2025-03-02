@@ -13,6 +13,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { CheckCircle, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function WaitlistForm() {
   const [email, setEmail] = useState('');
@@ -21,32 +22,44 @@ export function WaitlistForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Track interests for more targeted marketing
+  const [interests, setInterests] = useState<string[]>([]);
+  
+  const toggleInterest = (interest: string) => {
+    setInterests(prev => 
+      prev.includes(interest)
+        ? prev.filter(i => i !== interest)
+        : [...prev, interest]
+    );
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
     
     try {
-      // For now, simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Make actual API call
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email, 
+          name, 
+          source: 'waitlist_page',
+          interests
+        })
+      });
       
-      // This will be replaced with a real API call later
-      // await fetch('/api/waitlist', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, name })
-      // });
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to join waitlist');
+      }
       
       setIsSuccess(true);
-      
-      // Reset form after 3 seconds for demo purposes
-      setTimeout(() => {
-        setIsSuccess(false);
-        setEmail('');
-        setName('');
-      }, 3000);
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -95,6 +108,36 @@ export function WaitlistForm() {
               />
             </div>
             
+            <div className="space-y-2">
+              <Label>Which features are you most interested in?</Label>
+              <div className="space-y-2 mt-1">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="feature-unlimited" 
+                    checked={interests.includes('unlimited')}
+                    onCheckedChange={() => toggleInterest('unlimited')}
+                  />
+                  <Label htmlFor="feature-unlimited" className="font-normal">Unlimited subscriptions</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="feature-analytics" 
+                    checked={interests.includes('analytics')}
+                    onCheckedChange={() => toggleInterest('analytics')}
+                  />
+                  <Label htmlFor="feature-analytics" className="font-normal">Advanced analytics</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="feature-categories" 
+                    checked={interests.includes('categories')}
+                    onCheckedChange={() => toggleInterest('categories')}
+                  />
+                  <Label htmlFor="feature-categories" className="font-normal">Custom categories</Label>
+                </div>
+              </div>
+            </div>
+            
             {error && (
               <p className="text-red-500 text-sm">{error}</p>
             )}
@@ -107,7 +150,7 @@ export function WaitlistForm() {
           <Button 
             className="w-full" 
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !name || !email}
             onClick={handleSubmit}
           >
             {isSubmitting ? (
