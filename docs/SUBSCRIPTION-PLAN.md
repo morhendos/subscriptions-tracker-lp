@@ -22,6 +22,10 @@ export const FEATURES = {
   // User experience flags
   WAITLIST_ENABLED: true,          // Email collection for premium plans
   SHOW_COMING_SOON: true,          // Display "coming soon" badges
+  
+  // Development & testing flags
+  MOCK_PAYMENT_FLOW: false,        // Enable simulated payment
+  DEBUG_MODE: false                // Show debug information in UI
 }
 ```
 
@@ -47,12 +51,12 @@ export const FEATURES = {
   - [x] Add API endpoint structure for email storage
   - [x] Set up success/error handling
 
-- [ ] **Waitlist Database Implementation**
-  - [ ] Set up database collection/table for waitlist entries
-  - [ ] Create schema for waitlist entries (name, email, timestamp, source)
-  - [ ] Update API endpoint to store submissions in database
-  - [ ] Add email validation and duplicate checking
-  - [ ] Implement admin view for waitlist entries
+- [x] **Waitlist Database Implementation**
+  - [x] Set up database collection/table for waitlist entries
+  - [x] Create schema for waitlist entries (name, email, timestamp, source)
+  - [x] Update API endpoint to store submissions in database
+  - [x] Add email validation and duplicate checking
+  - [x] Implement admin view for waitlist entries
 
 - [ ] **Premium Feature Gating**
   - [x] Create PremiumFeatureGate component
@@ -112,11 +116,22 @@ interface WaitlistEntry {
 ```typescript
 // src/app/api/waitlist/route.ts
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/database';
+import { waitlistService } from '@/lib/services/waitlist-service';
+import { FEATURES } from '@/config/features';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  // Check if waitlist is enabled
+  if (!FEATURES.WAITLIST_ENABLED) {
+    return NextResponse.json(
+      { error: 'Waitlist is currently disabled' },
+      { status: 403 }
+    );
+  }
+
   try {
-    const { email, name, source = 'waitlist_page' } = await request.json();
+    const { email, name, source = 'waitlist_page', interests } = await request.json();
     
     // Validate inputs
     if (!email || !name) {
@@ -125,35 +140,32 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
-    // Connect to database
-    const db = await connectToDatabase();
-    const waitlistCollection = db.collection('waitlist');
-    
-    // Check for duplicate email
-    const existingEntry = await waitlistCollection.findOne({ email });
-    if (existingEntry) {
+
+    // Validate email format
+    if (!isValidEmail(email)) {
       return NextResponse.json(
-        { success: false, message: 'Email already registered for waitlist' },
-        { status: 409 }
+        { error: 'Invalid email format' },
+        { status: 400 }
       );
     }
     
-    // Create new entry
-    const result = await waitlistCollection.insertOne({
+    // Add to waitlist
+    const result = await waitlistService.addToWaitlist({
       name,
       email,
       source,
-      createdAt: new Date(),
-      contacted: false,
-      convertedToCustomer: false
+      interests
     });
     
-    // Optional: Send confirmation email
-    // await sendConfirmationEmail(email, name);
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, message: result.message },
+        { status: 409 } // Conflict status for duplicate emails
+      );
+    }
     
     return NextResponse.json(
-      { success: true, message: 'Added to waitlist', id: result.insertedId },
+      { success: true, message: 'Added to waitlist', id: result.id },
       { status: 201 }
     );
   } catch (error) {
@@ -168,43 +180,94 @@ export async function POST(request: Request) {
 
 ### Admin Dashboard
 
-Create a simple admin dashboard to:
-1. View all waitlist entries
+The admin dashboard features:
+1. View all waitlist entries with pagination
 2. Export data as CSV
-3. Mark entries as contacted
+3. Mark entries as contacted/converted
 4. Filter and sort entries
-5. Add notes to entries
+5. View statistics about signups
 
-This can be built as a protected route in the main application or as a separate admin tool.
+Admin route: `/admin/waitlist`
 
 ### Database Service
 
 ```typescript
-// src/lib/database.ts
-import { MongoClient } from 'mongodb';
+// src/lib/services/waitlist-service.ts
+import { Collection, Db, ObjectId } from 'mongodb';
+import { connectToDatabase } from '../database';
+import { 
+  WaitlistEntry, 
+  WaitlistEntryWithId, 
+  CreateWaitlistEntryInput
+} from '@/types/waitlist';
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const dbName = process.env.MONGODB_DB || 'subscriptions_tracker';
+class WaitlistService {
+  private db: Db | null = null;
+  private collection: Collection | null = null;
+  private collectionName = 'waitlist';
 
-let cachedClient = null;
-let cachedDb = null;
-
-export async function connectToDatabase() {
-  if (cachedDb) {
-    return cachedDb;
+  /**
+   * Initialize the database connection
+   */
+  private async init(): Promise<Collection> {
+    if (this.collection) return this.collection;
+    
+    this.db = await connectToDatabase();
+    this.collection = this.db.collection(this.collectionName);
+    
+    // Create indexes if they don't exist
+    await this.collection.createIndex({ email: 1 }, { unique: true });
+    await this.collection.createIndex({ createdAt: -1 });
+    
+    return this.collection;
   }
 
-  if (!cachedClient) {
-    cachedClient = await MongoClient.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+  /**
+   * Add a new entry to the waitlist
+   */
+  async addToWaitlist(entry: CreateWaitlistEntryInput): Promise<{ success: boolean; message: string; id?: string }> {
+    try {
+      const collection = await this.init();
+      
+      // Check if email already exists
+      const existingEntry = await collection.findOne({ email: entry.email });
+      if (existingEntry) {
+        return { 
+          success: false, 
+          message: 'Email already registered for waitlist' 
+        };
+      }
+      
+      // Create new entry
+      const result = await collection.insertOne({
+        name: entry.name,
+        email: entry.email,
+        source: entry.source || 'waitlist_page',
+        interests: entry.interests || [],
+        createdAt: new Date(),
+        contacted: false,
+        convertedToCustomer: false
+      });
+      
+      return { 
+        success: true, 
+        message: 'Added to waitlist successfully',
+        id: result.insertedId.toString()
+      };
+    } catch (error) {
+      console.error('Error adding to waitlist:', error);
+      return { 
+        success: false, 
+        message: 'Failed to add to waitlist' 
+      };
+    }
   }
 
-  const db = cachedClient.db(dbName);
-  cachedDb = db;
-  return db;
+  // Additional methods for admin use...
 }
+
+// Export as singleton
+export const waitlistService = new WaitlistService();
 ```
 
 ## Component Usage Guide
