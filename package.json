@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "tree": "node scripts/tree.js"
+    "tree": "node scripts/tree.js",
+    "prisma:regen": "node scripts/regenerate-prisma.js"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
