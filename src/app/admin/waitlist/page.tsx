@@ -35,8 +35,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 
-// Mock API key for development
-const ADMIN_API_KEY = 'admin-secret-key';
+// Admin API key should be stored in environment variables in production
+const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY || 'admin-secret-key';
 
 export default function WaitlistAdmin() {
   const [entries, setEntries] = useState<WaitlistEntryWithId[]>([]);
@@ -59,79 +59,35 @@ export default function WaitlistAdmin() {
       try {
         setLoading(true);
         
-        // In production, this would use real API
-        // For now, simulate the call with dummy data
-        
-        // Commented out for now - would be used in production
-        // const response = await fetch('/api/admin/waitlist', {
-        //   headers: { 'x-api-key': ADMIN_API_KEY }
-        // });
-        // 
-        // if (!response.ok) {
-        //   throw new Error('Failed to fetch waitlist entries');
-        // }
-        // 
-        // const data = await response.json();
-        // setEntries(data.entries);
-        // setStats(data.stats);
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Dummy data
-        const dummyEntries: WaitlistEntryWithId[] = [
-          {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            source: 'pricing_page',
-            interests: ['unlimited', 'analytics'],
-            contacted: false,
-            convertedToCustomer: false
-          },
-          {
-            id: '2',
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-            source: 'feature_gate',
-            interests: ['categories'],
-            notes: 'Interested in family sharing',
-            contacted: true,
-            convertedToCustomer: false
-          },
-          {
-            id: '3',
-            name: 'Mike Johnson',
-            email: 'mike@example.com',
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-            source: 'waitlist_page',
-            interests: ['unlimited', 'analytics', 'categories'],
-            contacted: true,
-            convertedToCustomer: true
-          }
-        ];
-        
-        setEntries(dummyEntries);
-        setStats({
-          total: dummyEntries.length,
-          contacted: dummyEntries.filter(entry => entry.contacted).length,
-          converted: dummyEntries.filter(entry => entry.convertedToCustomer).length,
-          lastWeek: dummyEntries.filter(entry => {
-            const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
-            return new Date(entry.createdAt) >= lastWeek;
-          }).length
+        // Use the actual API endpoint to fetch waitlist data
+        const response = await fetch('/api/admin/waitlist', {
+          headers: { 'x-api-key': ADMIN_API_KEY }
         });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch waitlist entries');
+        }
+        
+        const data = await response.json();
+        setEntries(data.entries);
+        setStats(data.stats);
       } catch (err) {
+        console.error('Failed to load waitlist entries:', err);
         setError('Failed to load waitlist entries');
-        console.error(err);
         
         toast({
           title: 'Error',
           description: 'Failed to load waitlist data',
           variant: 'destructive'
+        });
+        
+        // Fallback to empty data
+        setEntries([]);
+        setStats({
+          total: 0,
+          contacted: 0,
+          converted: 0,
+          lastWeek: 0
         });
       } finally {
         setLoading(false);
@@ -155,17 +111,21 @@ export default function WaitlistAdmin() {
   // Toggle contacted status
   const toggleContacted = async (id: string, currentValue: boolean) => {
     try {
-      // In production, this would use real API call:
-      // await fetch('/api/admin/waitlist', {
-      //   method: 'PATCH',
-      //   headers: { 
-      //     'Content-Type': 'application/json',
-      //     'x-api-key': ADMIN_API_KEY
-      //   },
-      //   body: JSON.stringify({ id, contacted: !currentValue })
-      // });
+      // Call the API to update the entry
+      const response = await fetch('/api/admin/waitlist', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': ADMIN_API_KEY
+        },
+        body: JSON.stringify({ id, contacted: !currentValue })
+      });
       
-      // For now, just update local state
+      if (!response.ok) {
+        throw new Error('Failed to update entry');
+      }
+      
+      // Update local state
       setEntries(prev => 
         prev.map(entry => 
           entry.id === id 
@@ -203,17 +163,21 @@ export default function WaitlistAdmin() {
   // Toggle converted status
   const toggleConverted = async (id: string, currentValue: boolean) => {
     try {
-      // In production, this would use real API call:
-      // await fetch('/api/admin/waitlist', {
-      //   method: 'PATCH',
-      //   headers: { 
-      //     'Content-Type': 'application/json',
-      //     'x-api-key': ADMIN_API_KEY
-      //   },
-      //   body: JSON.stringify({ id, convertedToCustomer: !currentValue })
-      // });
+      // Call the API to update the entry
+      const response = await fetch('/api/admin/waitlist', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': ADMIN_API_KEY
+        },
+        body: JSON.stringify({ id, convertedToCustomer: !currentValue })
+      });
       
-      // For now, just update local state
+      if (!response.ok) {
+        throw new Error('Failed to update entry');
+      }
+      
+      // Update local state
       setEntries(prev => 
         prev.map(entry => 
           entry.id === id 
