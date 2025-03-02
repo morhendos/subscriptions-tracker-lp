@@ -94,6 +94,16 @@ export default function AdminLogin() {
         throw new Error(data.error || 'Authentication failed');
       }
       
+      // Store auth token in localStorage for persistence
+      if (data.sessionToken) {
+        localStorage.setItem('admin_auth_token', data.sessionToken);
+      }
+      
+      // Store user data in localStorage
+      if (data.user) {
+        localStorage.setItem('admin_auth_user', JSON.stringify(data.user));
+      }
+      
       // If authentication successful, show success message and redirect
       toast({
         title: 'Authentication successful',
