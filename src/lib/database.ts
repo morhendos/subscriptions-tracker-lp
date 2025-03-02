@@ -1,7 +1,7 @@
 import { MongoClient, Db } from 'mongodb';
 
 const uri = process.env.MONGODB_URI || '';
-const dbName = process.env.MONGODB_DB || 'subscriptions_tracker';
+const dbName = process.env.MONGODB_DB || 'subscriptions';
 
 // Cache the MongoDB connection to prevent multiple connections
 let cachedClient: MongoClient | null = null;
