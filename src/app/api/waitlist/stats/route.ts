@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { waitlistService } from '@/lib/services/waitlist-service';
 
+// Export a dynamic setting to indicate this route doesn't need static generation
+export const dynamic = 'force-dynamic';
+
 /**
  * Handle GET requests to retrieve waitlist statistics
  * This endpoint is protected and should only be accessible to admin users
