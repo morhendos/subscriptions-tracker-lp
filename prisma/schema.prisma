@@ -51,5 +51,4 @@ model AdminSession {
   ipAddress   String?
   
   @@index([userId])
-  @@index([token])
 }
