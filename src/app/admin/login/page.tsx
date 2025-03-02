@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, ShieldAlert, KeyRound, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export default function AdminLogin() {
@@ -80,12 +80,20 @@ export default function AdminLogin() {
     setLoading(true);
     
     try {
+      // First ensure no credentials are being sent via URL params
+      const cleanCallbackUrl = callbackUrl.split('?')[0];
+      
       const response = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ 
+          email, 
+          password,
+          // Including redirect info with the request
+          callbackUrl: cleanCallbackUrl
+        }),
       });
       
       const data = await response.json();
@@ -94,15 +102,8 @@ export default function AdminLogin() {
         throw new Error(data.error || 'Authentication failed');
       }
       
-      // Store auth token in localStorage for persistence
-      if (data.sessionToken) {
-        localStorage.setItem('admin_auth_token', data.sessionToken);
-      }
-      
-      // Store user data in localStorage
-      if (data.user) {
-        localStorage.setItem('admin_auth_user', JSON.stringify(data.user));
-      }
+      // Log debug information
+      console.log("Login successful, redirecting to:", cleanCallbackUrl);
       
       // If authentication successful, show success message and redirect
       toast({
@@ -110,7 +111,8 @@ export default function AdminLogin() {
         description: `Welcome back, ${data.user?.name || 'Admin'}!`,
       });
       
-      router.push(callbackUrl);
+      // Replace the current URL with the callback URL to avoid history issues
+      window.location.href = cleanCallbackUrl;
     } catch (err) {
       console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'Authentication failed');
