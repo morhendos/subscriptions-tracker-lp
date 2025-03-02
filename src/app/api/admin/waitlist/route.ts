@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { waitlistService } from '@/lib/services/waitlist-service';
-import { verifyAdminSession } from '../auth/route';
+import { verifyAdminSession } from '@/lib/auth-utils';
 
 /**
  * GET /api/admin/waitlist - Get all waitlist entries (admin only)
