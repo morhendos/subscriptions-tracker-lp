@@ -5,23 +5,17 @@ import { DEFAULT_ADMIN_KEY, FEATURES } from '@/lib/constants';
 // Helper for authentication - basic implementation for now
 // In a real app, you would use a more robust auth system
 const isAuthenticated = async (req: NextRequest): Promise<boolean> => {
-  // If we're in development mode and auth bypass is enabled, always authenticate
-  if (FEATURES.BYPASS_ADMIN_AUTH) {
-    console.log('Development mode: Bypassing authentication');
-    return true;
-  }
-
   // Simple API key check
   const apiKey = req.headers.get('x-api-key');
   
   // Use environment variable if set, otherwise fall back to the default key
-  const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
+  const validApiKey = process.env.NEXT_PUBLIC_ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
   
   // In development, log the authentication details (but not in production)
   if (FEATURES.DEBUG_MODE) {
     console.log('Auth check details:');
     console.log(`- Received key: ${apiKey ? '[present]' : '[missing]'}`);
-    console.log(`- Using env var: ${process.env.ADMIN_API_KEY ? 'Yes' : 'No (using default)'}`);
+    console.log(`- Using env var: ${process.env.NEXT_PUBLIC_ADMIN_API_KEY ? 'Yes' : 'No (using default)'}`);
   }
   
   return apiKey === validApiKey;

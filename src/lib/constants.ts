@@ -4,6 +4,7 @@
 
 /**
  * Authentication
+ * This is used as a fallback only if NEXT_PUBLIC_ADMIN_API_KEY env var is not set
  */
 export const DEFAULT_ADMIN_KEY = 'admin-secret-key';
 
@@ -21,8 +22,5 @@ export const FEATURES = {
 
   // Development & testing flags
   MOCK_PAYMENT_FLOW: false, // Enable simulated payment
-  DEBUG_MODE: process.env.NODE_ENV === 'development', // Show debug information in UI
-  
-  // Bypass authentication in development
-  BYPASS_ADMIN_AUTH: process.env.NODE_ENV === 'development'
+  DEBUG_MODE: process.env.NODE_ENV === 'development' // Show debug information in UI
 };
