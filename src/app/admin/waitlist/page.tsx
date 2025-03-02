@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { WaitlistEntryWithId } from '@/types/waitlist';
-import { DEFAULT_ADMIN_KEY, FEATURES } from '@/lib/constants';
+import { FEATURES } from '@/lib/constants';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -37,9 +36,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 
-// Use the shared constant for the admin API key
-const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
-
 export default function WaitlistAdmin() {
   const [entries, setEntries] = useState<WaitlistEntryWithId[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,21 +59,12 @@ export default function WaitlistAdmin() {
         setLoading(true);
         setIsAuthError(false);
         
-        // In development mode, log the API key being used (never do this in production)
-        if (FEATURES.DEBUG_MODE) {
-          console.log('Admin page using API key:', ADMIN_API_KEY ? '[present]' : '[missing]');
-          console.log('Using default key:', process.env.NEXT_PUBLIC_ADMIN_API_KEY ? 'No (using env var)' : 'Yes');
-          console.log('Auth bypass enabled:', FEATURES.BYPASS_ADMIN_AUTH ? 'Yes' : 'No');
-        }
-        
-        // Use the actual API endpoint to fetch waitlist data
-        const response = await fetch('/api/admin/waitlist', {
-          headers: { 'x-api-key': ADMIN_API_KEY }
-        });
+        // API requests use session cookies now for authentication
+        const response = await fetch('/api/admin/waitlist');
         
         if (response.status === 401) {
           setIsAuthError(true);
-          throw new Error('Authentication failed - incorrect admin key');
+          throw new Error('Authentication failed - please login');
         }
         
         if (!response.ok) {
@@ -147,15 +134,14 @@ export default function WaitlistAdmin() {
       const response = await fetch('/api/admin/waitlist', {
         method: 'PATCH',
         headers: { 
-          'Content-Type': 'application/json',
-          'x-api-key': ADMIN_API_KEY
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ id, contacted: !currentValue })
       });
       
       if (response.status === 401) {
         setIsAuthError(true);
-        throw new Error('Authentication failed - incorrect admin key');
+        throw new Error('Authentication failed - please login again');
       }
       
       if (!response.ok) {
@@ -204,15 +190,14 @@ export default function WaitlistAdmin() {
       const response = await fetch('/api/admin/waitlist', {
         method: 'PATCH',
         headers: { 
-          'Content-Type': 'application/json',
-          'x-api-key': ADMIN_API_KEY
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ id, convertedToCustomer: !currentValue })
       });
       
       if (response.status === 401) {
         setIsAuthError(true);
-        throw new Error('Authentication failed - incorrect admin key');
+        throw new Error('Authentication failed - please login again');
       }
       
       if (!response.ok) {
@@ -317,22 +302,11 @@ export default function WaitlistAdmin() {
           <ShieldAlert className="h-12 w-12 mb-4 text-red-500" />
           <h2 className="text-xl font-bold mb-2">Authentication Failed</h2>
           <p className="text-center mb-6">
-            Could not authenticate to the admin API. The API key may be incorrect or not configured properly.
+            Your session has expired or you are not authenticated. Please log in again.
           </p>
-          <p className="text-sm text-red-600 max-w-lg text-center mb-4">
-            This is commonly caused by a mismatch between the API key used in the frontend and the one expected by the server.
-            Please check your environment variables and configuration.
-          </p>
-          {FEATURES.DEBUG_MODE && (
-            <div className="text-xs bg-red-100 p-4 rounded w-full max-w-lg">
-              <p className="font-bold mb-1">Debug Information:</p>
-              <ul className="list-disc pl-5">
-                <li>Environment: {process.env.NODE_ENV}</li>
-                <li>Auth bypass: {FEATURES.BYPASS_ADMIN_AUTH ? 'Enabled' : 'Disabled'}</li>
-                <li>Using default key: {process.env.NEXT_PUBLIC_ADMIN_API_KEY ? 'No' : 'Yes'}</li>
-              </ul>
-            </div>
-          )}
+          <Button onClick={() => router.push('/admin/login')}>
+            Go to Login
+          </Button>
         </div>
       </div>
     );
@@ -495,8 +469,6 @@ export default function WaitlistAdmin() {
           <p className="font-bold mb-1">Debug Information:</p>
           <ul className="list-disc pl-5">
             <li>Environment: {process.env.NODE_ENV}</li>
-            <li>Auth bypass: {FEATURES.BYPASS_ADMIN_AUTH ? 'Enabled' : 'Disabled'}</li>
-            <li>Using default key: {process.env.NEXT_PUBLIC_ADMIN_API_KEY ? 'No' : 'Yes'}</li>
             <li>Total entries loaded: {entries.length}</li>
           </ul>
         </div>

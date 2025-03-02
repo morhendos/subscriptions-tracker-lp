@@ -1,34 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { waitlistService } from '@/lib/services/waitlist-service';
-import { DEFAULT_ADMIN_KEY, FEATURES } from '@/lib/constants';
-
-// Helper for authentication - basic implementation for now
-// In a real app, you would use a more robust auth system
-const isAuthenticated = async (req: NextRequest): Promise<boolean> => {
-  // Simple API key check
-  const apiKey = req.headers.get('x-api-key');
-  
-  // Use environment variable if set, otherwise fall back to the default key
-  const validApiKey = process.env.NEXT_PUBLIC_ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
-  
-  // In development, log the authentication details (but not in production)
-  if (FEATURES.DEBUG_MODE) {
-    console.log('Auth check details:');
-    console.log(`- Received key: ${apiKey ? '[present]' : '[missing]'}`);
-    console.log(`- Using env var: ${process.env.NEXT_PUBLIC_ADMIN_API_KEY ? 'Yes' : 'No (using default)'}`);
-  }
-  
-  return apiKey === validApiKey;
-};
+import { verifyAdminSession } from '@/lib/auth-utils';
 
 /**
  * GET /api/admin/waitlist - Get all waitlist entries (admin only)
  */
 export async function GET(req: NextRequest) {
-  // Check authentication
-  if (!await isAuthenticated(req)) {
+  // Check authentication using session cookie
+  if (!verifyAdminSession(req)) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Invalid or missing API key' },
+      { error: 'Unauthorized', message: 'Authentication required' },
       { status: 401 }
     );
   }
@@ -55,10 +36,10 @@ export async function GET(req: NextRequest) {
  * PATCH /api/admin/waitlist/:id - Update a waitlist entry (admin only)
  */
 export async function PATCH(req: NextRequest) {
-  // Check authentication
-  if (!await isAuthenticated(req)) {
+  // Check authentication using session cookie
+  if (!verifyAdminSession(req)) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Invalid or missing API key' },
+      { error: 'Unauthorized', message: 'Authentication required' },
       { status: 401 }
     );
   }
@@ -99,10 +80,10 @@ export async function PATCH(req: NextRequest) {
  * DELETE /api/admin/waitlist/:id - Delete a waitlist entry (admin only)
  */
 export async function DELETE(req: NextRequest) {
-  // Check authentication
-  if (!await isAuthenticated(req)) {
+  // Check authentication using session cookie
+  if (!verifyAdminSession(req)) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Invalid or missing API key' },
+      { error: 'Unauthorized', message: 'Authentication required' },
       { status: 401 }
     );
   }

@@ -1,95 +1,120 @@
 'use client';
 
-import { ReactNode, useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Separator } from '@/components/ui/separator';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-interface AdminLayoutProps {
-  children: ReactNode;
-}
-
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const router = useRouter();
   const pathname = usePathname();
   
-  // Simple mock authentication for demo purposes
-  // In a real application, you would use proper authentication
+  // Check authentication status
   useEffect(() => {
-    // Check if authenticated - in a real app this would check session/cookies
-    // Here we're just mocking it
-    setIsAuthenticated(true);
-  }, []);
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/admin/auth');
+        const data = await response.json();
+        
+        setIsAuthenticated(data.authenticated);
+        
+        // If not authenticated and not on login page, redirect to login
+        if (!data.authenticated && pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+        
+        // If authenticated and on login page, redirect to admin dashboard
+        if (data.authenticated && pathname === '/admin/login') {
+          router.push('/admin');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+        
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, [pathname, router]);
   
-  // Navigation items
-  const navItems = [
-    { name: 'Dashboard', path: '/admin' },
-    { name: 'Waitlist', path: '/admin/waitlist' },
-  ];
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/auth', {
+        method: 'DELETE'
+      });
+      
+      setIsAuthenticated(false);
+      router.push('/admin/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
   
-  if (!isAuthenticated) {
+  // Show loading state
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Admin Access Required</h1>
-          <p className="text-muted-foreground mb-6">
-            You need to be authenticated to access the admin area.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            Return to Homepage
-          </Link>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="ml-2">Loading...</span>
       </div>
     );
   }
   
+  // Special case for login page - no header/nav needed
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+  
+  // If not authenticated, don't render anything (redirect will happen)
+  if (!isAuthenticated) {
+    return null;
+  }
+  
+  // Render admin layout with navigation
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 flex">
-            <Link href="/admin" className="font-semibold">
-              Admin Dashboard
-            </Link>
-          </div>
-          <nav className="flex items-center space-x-4 lg:space-x-6 mx-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === item.path
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center space-x-4">
-            <Link
-              href="/"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+    <div className="min-h-screen flex flex-col">
+      {/* Admin header */}
+      <div className="border-b bg-background">
+        <div className="container flex items-center justify-between h-16 px-4">
+          <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/')}
             >
-              Back to Site
-            </Link>
+              View Site
+            </Button>
+            
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
           </div>
         </div>
-      </header>
-      <main className="flex-1">
+      </div>
+      
+      {/* Admin content */}
+      <div className="flex-1">
         {children}
-      </main>
-      <footer className="border-t py-6">
-        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-center text-sm text-muted-foreground md:text-left">
-            &copy; {new Date().getFullYear()} Subscriptions Tracker. Admin Panel.
-          </p>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }
