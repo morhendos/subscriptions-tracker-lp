@@ -1,7 +1,7 @@
 'use client';
 
-import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
 type AnalyticsProps = {
@@ -10,27 +10,13 @@ type AnalyticsProps = {
 };
 
 /**
- * Analytics component that handles integration with Google Analytics and Microsoft Clarity
- * 
- * @param googleAnalyticsId - The Google Analytics measurement ID (format: G-XXXXXXXXXX)
- * @param microsoftClarityId - The Microsoft Clarity project ID
+ * Analytics scripts component that loads Google Analytics and Microsoft Clarity
+ * This component doesn't depend on URL parameters and can be rendered directly
  */
-export default function Analytics({ 
-  googleAnalyticsId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID, 
-  microsoftClarityId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID 
+export function AnalyticsScripts({
+  googleAnalyticsId,
+  microsoftClarityId
 }: AnalyticsProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Track page views in Google Analytics when the route changes
-  useEffect(() => {
-    if (googleAnalyticsId && window.gtag) {
-      window.gtag('config', googleAnalyticsId, {
-        page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : ''),
-      });
-    }
-  }, [pathname, searchParams, googleAnalyticsId]);
-
   return (
     <>
       {/* Google Analytics Script */}
@@ -66,6 +52,22 @@ export default function Analytics({
         </Script>
       )}
     </>
+  );
+}
+
+/**
+ * Main Analytics component that includes script loading functionality
+ * Safe to use in <head> section as it doesn't use client-side hooks
+ */
+export default function Analytics({
+  googleAnalyticsId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+  microsoftClarityId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID
+}: AnalyticsProps) {
+  return (
+    <AnalyticsScripts 
+      googleAnalyticsId={googleAnalyticsId}
+      microsoftClarityId={microsoftClarityId}
+    />
   );
 }
 
