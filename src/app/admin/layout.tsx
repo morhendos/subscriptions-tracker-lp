@@ -12,42 +12,79 @@ export default function AdminLayout({
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [adminKey, setAdminKey] = useState<string | null>(null);
   
   const router = useRouter();
   const pathname = usePathname();
   
-  // Check authentication status
+  // Get stored API key
   useEffect(() => {
+    const storedKey = localStorage.getItem('admin_key');
+    if (storedKey) {
+      setAdminKey(storedKey);
+    }
+  }, []);
+  
+  // Check authentication status with retry mechanism
+  useEffect(() => {
+    const maxRetries = 3;
+    const retryDelay = 500; // ms
+    
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/admin/auth');
-        const data = await response.json();
-        
-        setIsAuthenticated(data.authenticated);
-        
-        // If not authenticated and not on login page, redirect to login
-        if (!data.authenticated && pathname !== '/admin/login') {
-          router.push('/admin/login');
+        // Prepare headers - use API key if available
+        const headers: HeadersInit = {};
+        if (adminKey) {
+          headers['x-api-key'] = adminKey;
         }
         
-        // If authenticated and on login page, redirect to admin dashboard
-        if (data.authenticated && pathname === '/admin/login') {
-          router.push('/admin');
+        const response = await fetch('/api/admin/auth', { headers });
+        const data = await response.json();
+        
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          setRetryCount(0); // Reset retry count on success
+          
+          // If authenticated and on login page, redirect to admin dashboard
+          if (pathname === '/admin/login') {
+            router.push('/admin');
+          }
+        } else {
+          setIsAuthenticated(false);
+          
+          // If not authenticated and not on login page, redirect to login
+          if (pathname !== '/admin/login') {
+            // Give enough time for any session to be recognized before redirecting
+            if (retryCount >= maxRetries) {
+              router.push('/admin/login');
+            } else {
+              // Try again after a short delay
+              setRetryCount(prev => prev + 1);
+              setTimeout(checkAuth, retryDelay);
+            }
+          }
         }
       } catch (error) {
         console.error('Auth check error:', error);
         setIsAuthenticated(false);
         
-        if (pathname !== '/admin/login') {
+        if (pathname !== '/admin/login' && retryCount >= maxRetries) {
           router.push('/admin/login');
+        } else if (retryCount < maxRetries) {
+          // Try again after a short delay
+          setRetryCount(prev => prev + 1);
+          setTimeout(checkAuth, retryDelay);
         }
       } finally {
-        setIsLoading(false);
+        if (retryCount >= maxRetries || isAuthenticated !== null) {
+          setIsLoading(false);
+        }
       }
     };
     
     checkAuth();
-  }, [pathname, router]);
+  }, [pathname, router, adminKey, retryCount]);
   
   // Handle logout
   const handleLogout = async () => {
@@ -55,6 +92,10 @@ export default function AdminLayout({
       await fetch('/api/admin/auth', {
         method: 'DELETE'
       });
+      
+      // Also clear localStorage for the API key
+      localStorage.removeItem('admin_key');
+      setAdminKey(null);
       
       setIsAuthenticated(false);
       router.push('/admin/login');
