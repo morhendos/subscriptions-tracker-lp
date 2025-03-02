@@ -1,40 +1,51 @@
 import { NextRequest } from 'next/server';
 import { DEFAULT_ADMIN_KEY } from '@/lib/constants';
+import { cookies } from 'next/headers';
+import { verifyAdminSession as verifySession } from '@/lib/services/auth-service';
 
-// Store active sessions - in a production app, you'd use Redis or a database
-// Note: This is cleared on server restart, so admins would need to login again
-export const activeSessions: Record<string, { createdAt: Date }> = {};
-
-// Clean up expired sessions (older than 24 hours)
-export const cleanupSessions = (): void => {
-  const now = new Date();
-  Object.keys(activeSessions).forEach(sessionId => {
-    const sessionAge = now.getTime() - activeSessions[sessionId].createdAt.getTime();
-    // 24 hours in milliseconds
-    if (sessionAge > 24 * 60 * 60 * 1000) {
-      delete activeSessions[sessionId];
+/**
+ * Verify if a request has a valid admin session
+ * This function can be called from API routes or server components
+ */
+export const verifyAdminSession = async (req: NextRequest): Promise<boolean> => {
+  try {
+    // Get the session token from cookies
+    const sessionToken = req.cookies.get('admin_session')?.value;
+    
+    if (!sessionToken) {
+      return false;
     }
-  });
+    
+    // Use the auth service to verify the session
+    const result = await verifySession(sessionToken);
+    return result.valid;
+  } catch (error) {
+    console.error('Error verifying admin session:', error);
+    return false;
+  }
 };
 
-// Verify if a request has a valid admin session
-export const verifyAdminSession = (req: NextRequest): boolean => {
-  // Get the session ID from cookies
-  const sessionId = req.cookies.get('admin_session')?.value;
-  
-  // First check: Valid session cookie
-  if (sessionId && activeSessions[sessionId]) {
-    return true;
+/**
+ * Simple helper to check if a cookie-based session is valid
+ * For use in client components or pages
+ */
+export const isAuthenticated = async (): Promise<boolean> => {
+  try {
+    const response = await fetch('/api/admin/auth', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      return false;
+    }
+    
+    const data = await response.json();
+    return data.authenticated === true;
+  } catch (error) {
+    console.error('Error checking authentication:', error);
+    return false;
   }
-  
-  // Second check (fallback): Check for API key in header for testing
-  // Note: This is less secure but helps with serverless memory isolation issues
-  const apiKey = req.headers.get('x-api-key');
-  const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
-  
-  if (apiKey === validApiKey) {
-    return true;
-  }
-  
-  return false;
 };
