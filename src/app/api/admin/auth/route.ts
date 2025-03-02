@@ -1,41 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEFAULT_ADMIN_KEY } from '@/lib/constants';
 import { cookies } from 'next/headers';
-import { randomBytes } from 'crypto';
-import { activeSessions, cleanupSessions } from '@/lib/auth-utils';
-
-// Generate a session ID - in a real app, you'd use a proper JWT library
-const generateSessionId = () => {
-  return randomBytes(32).toString('hex');
-};
+import { 
+  authenticateAdmin, 
+  verifyAdminSession, 
+  refreshAdminSession, 
+  invalidateAdminSession,
+  getAdminUser 
+} from '@/lib/services/auth-service';
 
 /**
  * POST /api/admin/auth - Admin login
  */
 export async function POST(req: NextRequest) {
   try {
-    const { password } = await req.json();
+    const { email, password } = await req.json();
     
-    // Verify the password against the environment variable or default
-    const validPassword = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
-    
-    if (password !== validPassword) {
+    // Validate inputs
+    if (!email || !password) {
       return NextResponse.json(
-        { error: 'Invalid admin password' },
+        { error: 'Email and password are required' },
+        { status: 400 }
+      );
+    }
+    
+    // Authenticate the admin
+    const result = await authenticateAdmin(email, password);
+    
+    if (!result.authenticated || !result.sessionToken) {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
     
-    // Generate a session ID
-    const sessionId = generateSessionId();
-    
-    // Store session (with cleanup)
-    cleanupSessions();
-    activeSessions[sessionId] = { createdAt: new Date() };
-    
-    // Set cookie with the session ID
-    // Using cookies API from Next.js
-    cookies().set('admin_session', sessionId, {
+    // Set a cookie with the session token
+    const cookieStore = cookies();
+    cookieStore.set('admin_session', result.sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24, // 24 hours
@@ -43,9 +43,18 @@ export async function POST(req: NextRequest) {
       sameSite: 'strict'
     });
     
+    // Get user information
+    const user = result.userId ? await getAdminUser(result.userId) : null;
+    
     return NextResponse.json({
       success: true,
-      message: 'Authentication successful'
+      message: 'Authentication successful',
+      user: user ? {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        roles: user.roles
+      } : null
     });
   } catch (error) {
     console.error('Admin authentication error:', error);
@@ -61,20 +70,25 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    // Get the session ID from cookies
-    const sessionId = cookies().get('admin_session')?.value;
+    // Get the session token from cookies
+    const cookieStore = cookies();
+    const sessionToken = cookieStore.get('admin_session')?.value;
     
-    if (!sessionId || !activeSessions[sessionId]) {
-      // Check if API key is provided as fallback
-      const apiKey = req.headers.get('x-api-key');
-      const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
-      
-      if (apiKey === validApiKey) {
-        return NextResponse.json({
-          authenticated: true,
-          method: 'api_key'
-        });
-      }
+    if (!sessionToken) {
+      return NextResponse.json(
+        { authenticated: false },
+        { status: 401 }
+      );
+    }
+    
+    // Verify the session
+    const { valid, userId } = await verifyAdminSession(sessionToken);
+    
+    if (!valid) {
+      // Clear the invalid cookie
+      cookieStore.set('admin_session', '', {
+        expires: new Date(0)
+      });
       
       return NextResponse.json(
         { authenticated: false },
@@ -82,12 +96,31 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    // Renew session
-    activeSessions[sessionId].createdAt = new Date();
+    // Refresh the session to extend its lifetime
+    const refreshResult = await refreshAdminSession(sessionToken);
+    
+    if (refreshResult.success && refreshResult.newToken) {
+      // Update the cookie with the new token
+      cookieStore.set('admin_session', refreshResult.newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: '/',
+        sameSite: 'strict'
+      });
+    }
+    
+    // Get user information
+    const user = userId ? await getAdminUser(userId) : null;
     
     return NextResponse.json({
       authenticated: true,
-      method: 'session'
+      user: user ? {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        roles: user.roles
+      } : null
     });
   } catch (error) {
     console.error('Admin session check error:', error);
@@ -103,16 +136,17 @@ export async function GET(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
-    // Get the session ID from cookies
-    const sessionId = cookies().get('admin_session')?.value;
+    // Get the session token from cookies
+    const cookieStore = cookies();
+    const sessionToken = cookieStore.get('admin_session')?.value;
     
-    if (sessionId && activeSessions[sessionId]) {
-      // Delete the session
-      delete activeSessions[sessionId];
+    if (sessionToken) {
+      // Invalidate the session
+      await invalidateAdminSession(sessionToken);
     }
     
     // Clear the cookie
-    cookies().set('admin_session', '', {
+    cookieStore.set('admin_session', '', {
       expires: new Date(0)
     });
     
