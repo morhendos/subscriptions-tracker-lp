@@ -28,20 +28,23 @@ import {
   CheckCircle, 
   DollarSign,
   MailCheck,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 
-// Admin API key should be stored in environment variables in production
-const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY || 'admin-secret-key';
+// Admin API key - hardcoded for now, but should be stored securely in production
+// This must match the DEFAULT_ADMIN_KEY in the API route
+const ADMIN_API_KEY = 'admin-secret-key';
 
 export default function WaitlistAdmin() {
   const [entries, setEntries] = useState<WaitlistEntryWithId[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthError, setIsAuthError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState({
     total: 0,
@@ -58,11 +61,17 @@ export default function WaitlistAdmin() {
     const fetchEntries = async () => {
       try {
         setLoading(true);
+        setIsAuthError(false);
         
         // Use the actual API endpoint to fetch waitlist data
         const response = await fetch('/api/admin/waitlist', {
           headers: { 'x-api-key': ADMIN_API_KEY }
         });
+        
+        if (response.status === 401) {
+          setIsAuthError(true);
+          throw new Error('Authentication failed - incorrect admin key');
+        }
         
         if (!response.ok) {
           throw new Error('Failed to fetch waitlist entries');
@@ -73,11 +82,16 @@ export default function WaitlistAdmin() {
         setStats(data.stats);
       } catch (err) {
         console.error('Failed to load waitlist entries:', err);
-        setError('Failed to load waitlist entries');
+        
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to load waitlist entries');
+        }
         
         toast({
           title: 'Error',
-          description: 'Failed to load waitlist data',
+          description: isAuthError ? 'Authentication failed' : 'Failed to load waitlist data',
           variant: 'destructive'
         });
         
@@ -121,6 +135,11 @@ export default function WaitlistAdmin() {
         body: JSON.stringify({ id, contacted: !currentValue })
       });
       
+      if (response.status === 401) {
+        setIsAuthError(true);
+        throw new Error('Authentication failed - incorrect admin key');
+      }
+      
       if (!response.ok) {
         throw new Error('Failed to update entry');
       }
@@ -154,7 +173,7 @@ export default function WaitlistAdmin() {
       console.error('Failed to update entry', err);
       toast({
         title: 'Error',
-        description: 'Failed to update entry',
+        description: isAuthError ? 'Authentication failed' : 'Failed to update entry',
         variant: 'destructive'
       });
     }
@@ -172,6 +191,11 @@ export default function WaitlistAdmin() {
         },
         body: JSON.stringify({ id, convertedToCustomer: !currentValue })
       });
+      
+      if (response.status === 401) {
+        setIsAuthError(true);
+        throw new Error('Authentication failed - incorrect admin key');
+      }
       
       if (!response.ok) {
         throw new Error('Failed to update entry');
@@ -206,7 +230,7 @@ export default function WaitlistAdmin() {
       console.error('Failed to update entry', err);
       toast({
         title: 'Error',
-        description: 'Failed to update entry',
+        description: isAuthError ? 'Authentication failed' : 'Failed to update entry',
         variant: 'destructive'
       });
     }
@@ -256,6 +280,35 @@ export default function WaitlistAdmin() {
       day: 'numeric'
     });
   };
+  
+  // Show authentication error message
+  if (isAuthError) {
+    return (
+      <div className="container mx-auto py-10 px-4">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Waitlist Management</h1>
+            <p className="text-muted-foreground">Manage and track interest in premium features</p>
+          </div>
+          <Button variant="outline" onClick={() => router.push('/admin')}>
+            Back to Admin
+          </Button>
+        </div>
+        
+        <div className="bg-red-50 border border-red-200 text-red-700 p-8 rounded-lg flex flex-col items-center justify-center">
+          <ShieldAlert className="h-12 w-12 mb-4 text-red-500" />
+          <h2 className="text-xl font-bold mb-2">Authentication Failed</h2>
+          <p className="text-center mb-6">
+            Could not authenticate to the admin API. The API key may be incorrect or not configured properly.
+          </p>
+          <p className="text-sm text-red-600 max-w-lg text-center">
+            This is commonly caused by a mismatch between the API key used in the frontend and the one expected by the server.
+            Please check your environment variables and configuration.
+          </p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto py-10 px-4">
@@ -403,7 +456,7 @@ export default function WaitlistAdmin() {
         </TabsContent>
       </Tabs>
       
-      {error && (
+      {error && !isAuthError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mt-6">
           {error}
         </div>
