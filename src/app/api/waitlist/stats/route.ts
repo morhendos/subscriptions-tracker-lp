@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { WaitlistService } from '@/lib/services/waitlist-service';
+import { waitlistService } from '@/lib/services/waitlist-service';
 
 /**
  * Handle GET requests to retrieve waitlist statistics
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get waitlist statistics
-    const stats = await WaitlistService.getStats();
+    const stats = await waitlistService.getStats();
     
     return NextResponse.json({
       success: true,
