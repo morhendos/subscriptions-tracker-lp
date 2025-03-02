@@ -16,7 +16,7 @@ We've implemented the following changes:
 
 ### 1. Split Analytics into Components
 
-- `Analytics.tsx` - Exports the base component and script-loading functionality
+- `Analytics.tsx` - Default export for script-loading functionality 
 - `AnalyticsPageTracker.tsx` - Dedicated component for page tracking that uses client-side hooks
 
 ### 2. Fixed Root Layout
@@ -36,7 +36,7 @@ The analytics implementation now consists of two parts:
 
 ```tsx
 // In layout.tsx
-import { Analytics } from "@/components/Analytics";
+import Analytics from "@/components/Analytics"; // Default import
 import AnalyticsPageTracker from "@/components/AnalyticsPageTracker";
 import { Suspense } from "react";
 
