@@ -24,6 +24,85 @@ const logAuthAttempt = (email: string, message: string) => {
 };
 
 /**
+ * Parse roles from any format to a standard Role[] array
+ */
+const parseRoles = (rolesData: any): Role[] => {
+  try {
+    if (!rolesData) return [];
+    
+    // If it's already an array, process each item
+    if (Array.isArray(rolesData)) {
+      return rolesData.map(role => {
+        // If the role is a string, try to parse it as JSON
+        if (typeof role === 'string') {
+          try {
+            return JSON.parse(role);
+          } catch (e) {
+            // If parsing fails, just return null (will be filtered out)
+            return null;
+          }
+        }
+        // If the role is already an object, return it as is
+        return role;
+      }).filter(role => role !== null);
+    }
+    
+    // If it's a string, try to parse it as a JSON array
+    if (typeof rolesData === 'string') {
+      try {
+        const parsed = JSON.parse(rolesData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    
+    // If it's an object, wrap it in an array
+    if (typeof rolesData === 'object' && rolesData !== null) {
+      return [rolesData];
+    }
+    
+    // Default case
+    return [];
+  } catch (error) {
+    console.error('Error parsing roles:', error);
+    return [];
+  }
+};
+
+/**
+ * Check if a user has admin role
+ */
+const hasAdminRole = (roles: any[]): boolean => {
+  try {
+    return roles.some(role => {
+      // For flexibility, check several possible structures
+      if (typeof role === 'object' && role !== null) {
+        // Check for {name: 'admin'} structure
+        if (role.name === 'admin' || role.name === 'super-admin') {
+          return true;
+        }
+        
+        // Check for {role: 'admin'} structure
+        if (role.role === 'admin' || role.role === 'super-admin') {
+          return true;
+        }
+      }
+      
+      // Check for string 'admin'
+      if (typeof role === 'string') {
+        return role === 'admin' || role === 'super-admin';
+      }
+      
+      return false;
+    });
+  } catch (error) {
+    console.error('Error checking admin role:', error);
+    return false;
+  }
+};
+
+/**
  * Authenticates a user and checks if they have admin privileges
  */
 export const authenticateAdmin = async (email: string, password: string): Promise<{ 
@@ -35,6 +114,7 @@ export const authenticateAdmin = async (email: string, password: string): Promis
     const client = await getPrisma();
     
     // Find the user by email
+    console.log(`Looking for user with email: ${email}`);
     const user = await client.user.findUnique({
       where: { email }
     });
@@ -45,46 +125,58 @@ export const authenticateAdmin = async (email: string, password: string): Promis
       return { authenticated: false };
     }
     
-    // For development purposes: accept any password for the admin user
+    console.log(`User found: ${user.id}`);
+    console.log(`User roles raw data:`, JSON.stringify(user.roles));
+    
+    // For development purposes: skip password verification
     // In production, you would verify the password against the hashedPassword
-    // This is a temporary solution until we can properly implement password verification
     
-    // Check if user has admin role
-    // Parse roles from JSON to check for admin role
-    let roles: any[] = [];
-    
-    try {
-      // Handle different formats of the roles field
-      if (Array.isArray(user.roles)) {
-        roles = user.roles.map(role => {
-          if (typeof role === 'string') {
-            try {
-              return JSON.parse(role);
-            } catch (e) {
-              return role;
-            }
-          }
-          return role;
-        });
-      }
-    } catch (e) {
-      console.error("Error parsing roles:", e);
-      roles = [];
-    }
-    
-    console.log("User roles:", JSON.stringify(roles, null, 2));
+    // Parse the roles data
+    const roles = parseRoles(user.roles);
+    console.log(`Parsed ${roles.length} roles:`, JSON.stringify(roles, null, 2));
     
     // Check if the user has admin role
-    const isAdmin = roles.some(role => {
-      if (typeof role === 'object' && role !== null) {
-        return role.name === 'admin' || role.name === 'super-admin';
-      }
-      return false;
-    });
+    const isAdmin = hasAdminRole(roles);
+    console.log(`User has admin role: ${isAdmin}`);
     
     if (!isAdmin) {
       logAuthAttempt(email, "Not an admin");
       return { authenticated: false };
+    }
+    
+    // For testing/debugging, always authenticate the user with the specified email
+    if (email === "morhendos@gmail.com") {
+      console.log("Special case: authenticating morhendos@gmail.com");
+      
+      // Create a session token for the admin
+      const token = randomBytes(32).toString('hex');
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      // Store the session
+      await client.adminSession.create({
+        data: {
+          userId: user.id,
+          token,
+          expires,
+        }
+      });
+      
+      // Update the user's last login timestamp
+      await client.user.update({
+        where: { id: user.id },
+        data: { 
+          lastLogin: new Date(),
+          failedLoginAttempts: 0,
+        }
+      });
+      
+      console.log("Authentication successful, session created");
+      
+      return { 
+        authenticated: true,
+        userId: user.id,
+        sessionToken: token
+      };
     }
     
     // Create a session token for the admin
@@ -108,6 +200,8 @@ export const authenticateAdmin = async (email: string, password: string): Promis
         failedLoginAttempts: 0,
       }
     });
+    
+    console.log("Authentication successful, session created");
     
     return { 
       authenticated: true,
@@ -244,26 +338,8 @@ export const getAdminUser = async (userId: string): Promise<{
       return null;
     }
     
-    // Parse roles from JSON
-    let userRoles: Role[] = [];
-    
-    try {
-      if (Array.isArray(user.roles)) {
-        userRoles = user.roles.map(role => {
-          if (typeof role === 'string') {
-            try {
-              return JSON.parse(role);
-            } catch (e) {
-              return role;
-            }
-          }
-          return role;
-        }) as Role[];
-      }
-    } catch (e) {
-      console.error("Error parsing roles for user profile:", e);
-      userRoles = [];
-    }
+    // Parse roles from any format
+    const userRoles = parseRoles(user.roles);
     
     return {
       id: user.id,
