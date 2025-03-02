@@ -33,27 +33,90 @@ export default function AdminLayout({
       return;
     }
     
+    // Try to get auth token from localStorage first
+    const authToken = localStorage.getItem('admin_auth_token');
+    const authUser = localStorage.getItem('admin_auth_user');
+    
+    // Helper function to fetch auth status from API
     const checkAuth = async () => {
       try {
         const response = await fetch('/api/admin/auth');
         const data = await response.json();
         
         if (!data.authenticated) {
-          // If not authenticated, redirect to login
-          router.push(`/admin/login?callbackUrl=${encodeURIComponent(pathname)}`);
+          // If not authenticated and no local token, redirect to login
+          if (!authToken) {
+            router.push(`/admin/login?callbackUrl=${encodeURIComponent(pathname)}`);
+            return false;
+          }
+          // Try to use the local token to re-authenticate
+          const reAuthResponse = await fetch('/api/admin/auth/revalidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: authToken }),
+          });
+          
+          if (!reAuthResponse.ok) {
+            // If reauth failed, clear local storage and redirect to login
+            localStorage.removeItem('admin_auth_token');
+            localStorage.removeItem('admin_auth_user');
+            router.push(`/admin/login?callbackUrl=${encodeURIComponent(pathname)}`);
+            return false;
+          }
+          
+          // Reauth successful, get updated user data
+          const reAuthData = await reAuthResponse.json();
+          if (reAuthData.user) {
+            setUser(reAuthData.user);
+            localStorage.setItem('admin_auth_user', JSON.stringify(reAuthData.user));
+            return true;
+          }
+          return false;
         } else {
-          // If authenticated, set the user data
-          setUser(data.user);
+          // If authenticated via API, update local state and storage
+          if (data.user) {
+            setUser(data.user);
+            localStorage.setItem('admin_auth_user', JSON.stringify(data.user));
+            if (data.token) {
+              localStorage.setItem('admin_auth_token', data.token);
+            }
+          }
+          return true;
         }
       } catch (error) {
         console.error('Auth check error:', error);
-        // If there's an error, redirect to login
+        
+        // If there's an error but we have local user data, use that
+        if (authUser) {
+          try {
+            setUser(JSON.parse(authUser));
+            return true;
+          } catch (e) {
+            // If parsing fails, clear local storage
+            localStorage.removeItem('admin_auth_token');
+            localStorage.removeItem('admin_auth_user');
+          }
+        }
+        
+        // If all else fails, redirect to login
         router.push(`/admin/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        return false;
       } finally {
         setIsLoading(false);
       }
     };
     
+    // If we have a cached user, set it immediately and then check auth
+    if (authUser) {
+      try {
+        setUser(JSON.parse(authUser));
+        setIsLoading(false);  // Show the UI faster
+      } catch (e) {
+        // If parsing fails, do nothing and continue with auth check
+      }
+    }
+    
+    // Always check auth to verify the session
     checkAuth();
   }, [pathname, router]);
   
@@ -65,6 +128,8 @@ export default function AdminLayout({
       });
       
       setUser(null);
+      localStorage.removeItem('admin_auth_token');
+      localStorage.removeItem('admin_auth_user');
       
       toast({
         title: 'Logged out',
@@ -83,8 +148,8 @@ export default function AdminLayout({
     }
   };
   
-  // Show loading state
-  if (isLoading) {
+  // Show loading state only if on a page other than login and still loading
+  if (isLoading && pathname !== '/admin/login') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -98,12 +163,6 @@ export default function AdminLayout({
     return <>{children}</>;
   }
   
-  // If not authenticated and not on login page, don't render anything
-  // (middleware will handle the redirect)
-  if (!user) {
-    return null;
-  }
-  
   // Render admin layout with navigation
   return (
     <div className="min-h-screen flex flex-col">
@@ -114,13 +173,15 @@ export default function AdminLayout({
           
           <div className="flex items-center gap-4">
             {/* User info */}
-            <div className="flex items-center text-sm text-muted-foreground">
-              <User className="h-4 w-4 mr-1" />
-              <span>{user.name}</span>
-              <span className="ml-2 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded">
-                {user.roles?.find(r => r.name === 'admin' || r.name === 'super-admin')?.name || 'admin'}
-              </span>
-            </div>
+            {user && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <User className="h-4 w-4 mr-1" />
+                <span>{user.name}</span>
+                <span className="ml-2 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded">
+                  {user.roles?.find(r => r.name === 'admin' || r.name === 'super-admin')?.name || 'admin'}
+                </span>
+              </div>
+            )}
             
             <Button
               variant="ghost"
