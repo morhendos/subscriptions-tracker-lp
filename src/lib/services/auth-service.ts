@@ -75,53 +75,42 @@ const parseRoles = (rolesData: any): Role[] => {
  */
 const hasAdminRole = (roles: any[]): boolean => {
   try {
-    return roles.some(role => {
+    const hasAdmin = roles.some(role => {
       // For flexibility, check several possible structures
       if (typeof role === 'object' && role !== null) {
         // Check for {name: 'admin'} structure
         if (role.name === 'admin' || role.name === 'super-admin') {
+          console.log(`Found admin role by name: ${role.name}`);
           return true;
         }
         
         // Check for {role: 'admin'} structure
         if (role.role === 'admin' || role.role === 'super-admin') {
+          console.log(`Found admin role by role property: ${role.role}`);
           return true;
         }
       }
       
       // Check for string 'admin'
       if (typeof role === 'string') {
-        return role === 'admin' || role === 'super-admin';
+        if (role === 'admin' || role === 'super-admin') {
+          console.log(`Found admin role by string value: ${role}`);
+          return true;
+        }
       }
       
       return false;
     });
+    
+    return hasAdmin;
   } catch (error) {
     console.error('Error checking admin role:', error);
     return false;
   }
 };
 
-// Create a more persistent session solution using localStorage
-// for development purposes
-// In production, you would use a proper database or Redis store
-// This implementation uses a pattern that works with Next.js server components
-// by storing sessions in a global variable
-declare global {
-  var __adminSessions: Record<string, {
-    userId: string;
-    email: string;
-    name: string;
-    expires: Date;
-    createdAt: Date;
-    updatedAt: Date;
-  }>;
-}
-
-// Initialize global session store if it doesn't exist
-if (!global.__adminSessions) {
-  global.__adminSessions = {};
-}
+// Simple in-memory session store - this is reset on server restarts
+const sessions = new Map();
 
 /**
  * Authenticates a user and checks if they have admin privileges
@@ -135,9 +124,23 @@ export const authenticateAdmin = async (email: string, password: string): Promis
     const client = await getPrisma();
     
     // Find the user by email
+    console.log(`Looking for user with email: ${email}`);
+    console.log(`Database connection: ${process.env.MONGODB_URI}`);
+    
     const user = await client.user.findUnique({
       where: { email }
     });
+    
+    // List existing users for debugging
+    try {
+      const allUsers = await client.user.findMany({
+        select: { id: true, email: true }
+      });
+      console.log(`Found ${allUsers.length} users in database:`, 
+        allUsers.map(u => u.email).join(', '));
+    } catch (e) {
+      console.error("Error listing users:", e);
+    }
     
     // If user doesn't exist, authentication fails
     if (!user) {
@@ -145,50 +148,43 @@ export const authenticateAdmin = async (email: string, password: string): Promis
       return { authenticated: false };
     }
     
-    // For development purposes: skip password verification
-    // In production, you would verify the password against the hashedPassword
-    // For example: await bcrypt.compare(password, user.hashedPassword)
+    console.log(`User found: ${user.id}`);
+    console.log(`User email: ${user.email}`);
+    console.log(`User name: ${user.name}`);
+    
+    // Allow morhendos@gmail.com to pass authentication
+    const isSpecialUser = email === "morhendos@gmail.com";
+    if (isSpecialUser) {
+      console.log("Special user detected, bypassing role check");
+    }
     
     // Parse the roles data
     const roles = parseRoles(user.roles);
+    console.log(`Parsed roles:`, JSON.stringify(roles, null, 2));
     
     // Check if the user has admin role
-    const isAdmin = hasAdminRole(roles);
+    const isAdmin = hasAdminRole(roles) || isSpecialUser;
+    console.log(`User has admin role: ${isAdmin}`);
     
-    if (!isAdmin && email !== "morhendos@gmail.com") {
+    if (!isAdmin) {
       logAuthAttempt(email, "Not an admin");
       return { authenticated: false };
     }
     
     // Create a session token
     const token = randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
-    // Store session in the global store
-    global.__adminSessions[token] = {
+    // Store session
+    sessions.set(token, {
       userId: user.id,
       email: user.email,
-      name: user.name,
-      expires,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+      created: new Date(),
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    });
     
-    console.log("Created session:", token.substring(0, 10) + "...");
-    console.log("Active sessions:", Object.keys(global.__adminSessions).length);
-    
-    // Update the user's last login timestamp if possible (without transactions)
-    try {
-      await client.user.update({
-        where: { id: user.id },
-        data: { 
-          lastLogin: new Date()
-        }
-      });
-    } catch (error) {
-      // Ignore update errors as they're not critical
-      console.warn('Failed to update last login time:', error);
-    }
+    console.log(`Created session for user ${user.email}`);
+    console.log(`Session token (first 10 chars): ${token.substring(0, 10)}...`);
+    console.log(`Total active sessions: ${sessions.size}`);
     
     return { 
       authenticated: true,
@@ -209,17 +205,22 @@ export const verifyAdminSession = async (token: string): Promise<{
   userId?: string;
 }> => {
   try {
-    // Get the session from the global store
-    const session = global.__adminSessions[token];
+    // Get session from the map
+    const session = sessions.get(token);
     
     // If session doesn't exist or is expired, verification fails
-    if (!session || session.expires < new Date()) {
-      console.log("Session not found or expired:", token.substring(0, 10) + "...");
+    if (!session) {
+      console.log(`Session not found: ${token.substring(0, 10)}...`);
       return { valid: false };
     }
     
-    // Update the session's updatedAt timestamp
-    session.updatedAt = new Date();
+    if (session.expires < new Date()) {
+      console.log(`Session expired: ${token.substring(0, 10)}...`);
+      sessions.delete(token);
+      return { valid: false };
+    }
+    
+    console.log(`Session verified for user: ${session.email}`);
     
     return { 
       valid: true,
@@ -239,8 +240,8 @@ export const refreshAdminSession = async (token: string): Promise<{
   newToken?: string;
 }> => {
   try {
-    // Get the session from the global store
-    const session = global.__adminSessions[token];
+    // Get session from the map
+    const session = sessions.get(token);
     
     // If session doesn't exist or is expired, refresh fails
     if (!session || session.expires < new Date()) {
@@ -249,16 +250,17 @@ export const refreshAdminSession = async (token: string): Promise<{
     
     // Create a new token
     const newToken = randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
     // Store the new session and remove the old one
-    global.__adminSessions[newToken] = {
+    sessions.set(newToken, {
       ...session,
-      expires,
-      updatedAt: new Date()
-    };
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    });
     
-    delete global.__adminSessions[token];
+    sessions.delete(token);
+    
+    console.log(`Session refreshed for user: ${session.email}`);
+    console.log(`New token (first 10 chars): ${newToken.substring(0, 10)}...`);
     
     return { 
       success: true,
@@ -275,12 +277,14 @@ export const refreshAdminSession = async (token: string): Promise<{
  */
 export const invalidateAdminSession = async (token: string): Promise<boolean> => {
   try {
-    // Remove the session from the global store
-    if (global.__adminSessions[token]) {
-      delete global.__adminSessions[token];
-      return true;
-    }
-    return false;
+    // Remove the session from the map
+    const hadSession = sessions.has(token);
+    sessions.delete(token);
+    
+    console.log(`Session invalidated: ${token.substring(0, 10)}...`);
+    console.log(`Session existed: ${hadSession}`);
+    
+    return true;
   } catch (error) {
     console.error('Admin session invalidation error:', error);
     return false;
@@ -306,11 +310,14 @@ export const getAdminUser = async (userId: string): Promise<{
     
     // If user doesn't exist, return null
     if (!user) {
+      console.log(`User not found: ${userId}`);
       return null;
     }
     
     // Parse roles from any format
     const userRoles = parseRoles(user.roles);
+    
+    console.log(`Retrieved user: ${user.email}`);
     
     return {
       id: user.id,
