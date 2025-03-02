@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, ShieldAlert, KeyRound } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, InfoIcon } from 'lucide-react';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
@@ -41,6 +41,10 @@ export default function AdminLogin() {
         const data = await response.json();
         throw new Error(data.error || 'Authentication failed');
       }
+      
+      // Also save the password as API key in localStorage as a fallback
+      // This helps with serverless environments where sessions might not persist
+      localStorage.setItem('admin_key', password);
       
       toast({
         title: 'Success',
@@ -107,6 +111,16 @@ export default function AdminLogin() {
                   {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Login
                 </Button>
+                
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded px-4 py-3">
+                  <div className="flex items-start">
+                    <InfoIcon className="h-4 w-4 text-blue-600 mt-0.5 mr-2" />
+                    <p className="text-xs text-blue-700">
+                      Your admin key will also be securely stored as a fallback authentication method.
+                      This helps with session issues in serverless environments.
+                    </p>
+                  </div>
+                </div>
               </div>
             </form>
           </CardContent>

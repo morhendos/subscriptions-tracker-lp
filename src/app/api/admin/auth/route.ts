@@ -65,6 +65,17 @@ export async function GET(req: NextRequest) {
     const sessionId = cookies().get('admin_session')?.value;
     
     if (!sessionId || !activeSessions[sessionId]) {
+      // Check if API key is provided as fallback
+      const apiKey = req.headers.get('x-api-key');
+      const validApiKey = process.env.ADMIN_API_KEY || DEFAULT_ADMIN_KEY;
+      
+      if (apiKey === validApiKey) {
+        return NextResponse.json({
+          authenticated: true,
+          method: 'api_key'
+        });
+      }
+      
       return NextResponse.json(
         { authenticated: false },
         { status: 401 }
@@ -75,7 +86,8 @@ export async function GET(req: NextRequest) {
     activeSessions[sessionId].createdAt = new Date();
     
     return NextResponse.json({
-      authenticated: true
+      authenticated: true,
+      method: 'session'
     });
   } catch (error) {
     console.error('Admin session check error:', error);
