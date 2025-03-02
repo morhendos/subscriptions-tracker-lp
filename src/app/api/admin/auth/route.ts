@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Authentication successful',
+      sessionToken: result.sessionToken, // Send token back to store in localStorage
       user: user ? {
         id: user.id,
         email: user.email,
@@ -139,6 +140,7 @@ export async function GET(req: NextRequest) {
     
     return NextResponse.json({
       authenticated: true,
+      token: refreshResult.newToken || sessionToken, // Send token back for localStorage
       user: user ? {
         id: user.id,
         email: user.email,
