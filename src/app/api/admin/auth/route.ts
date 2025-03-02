@@ -2,26 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ADMIN_KEY } from '@/lib/constants';
 import { cookies } from 'next/headers';
 import { randomBytes } from 'crypto';
+import { activeSessions, cleanupSessions } from '@/lib/auth-utils';
 
 // Generate a session ID - in a real app, you'd use a proper JWT library
 const generateSessionId = () => {
   return randomBytes(32).toString('hex');
-};
-
-// Store active sessions - in a production app, you'd use Redis or a database
-// Note: This is cleared on server restart, so admins would need to login again
-const activeSessions: Record<string, { createdAt: Date }> = {};
-
-// Clean up expired sessions (older than 24 hours)
-const cleanupSessions = () => {
-  const now = new Date();
-  Object.keys(activeSessions).forEach(sessionId => {
-    const sessionAge = now.getTime() - activeSessions[sessionId].createdAt.getTime();
-    // 24 hours in milliseconds
-    if (sessionAge > 24 * 60 * 60 * 1000) {
-      delete activeSessions[sessionId];
-    }
-  });
 };
 
 /**
@@ -131,12 +116,3 @@ export async function DELETE(req: NextRequest) {
     );
   }
 }
-
-// Export function to verify session - used by other admin API routes
-export const verifyAdminSession = (req: NextRequest): boolean => {
-  // Get the session ID from cookies
-  const sessionId = req.cookies.get('admin_session')?.value;
-  
-  // Check if the session is valid
-  return !!sessionId && !!activeSessions[sessionId];
-};
