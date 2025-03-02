@@ -63,8 +63,10 @@ export default function WaitlistAdmin() {
     }
   }, []);
   
-  // Fetch waitlist entries
+  // Fetch waitlist entries with a delay to ensure session is established
   useEffect(() => {
+    const initialDelay = 500; // ms to wait before first fetch attempt
+    
     const fetchEntries = async () => {
       try {
         setLoading(true);
@@ -130,7 +132,12 @@ export default function WaitlistAdmin() {
       }
     };
     
-    fetchEntries();
+    // Add a small delay before the first fetch to ensure session cookie is properly set
+    const timer = setTimeout(() => {
+      fetchEntries();
+    }, initialDelay);
+    
+    return () => clearTimeout(timer);
   }, [toast, adminKey]);
   
   // Filter entries based on search query
