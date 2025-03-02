@@ -10,6 +10,7 @@ import {
 } from "@/lib/schema";
 import Footer from "@/components/Footer";
 import Analytics from "@/components/Analytics";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -143,6 +144,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
+        <Toaster />
       </body>
     </html>
   );
