@@ -1,13 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { waitlistService } from '@/lib/services/waitlist-service';
-import { verifyAdminSession } from '@/lib/auth-utils';
+import { cookies } from 'next/headers';
+import { verifyAdminSession } from '@/lib/services/auth-service';
+
+/**
+ * Helper to check authentication for admin API routes
+ */
+const checkAuth = async (req: NextRequest) => {
+  // Get the session token from cookies
+  const sessionToken = req.cookies.get('admin_session')?.value;
+  
+  if (!sessionToken) {
+    return false;
+  }
+  
+  // Use the auth service to verify the session
+  const result = await verifyAdminSession(sessionToken);
+  return result.valid;
+};
 
 /**
  * GET /api/admin/waitlist - Get all waitlist entries (admin only)
  */
 export async function GET(req: NextRequest) {
   // Check authentication using session cookie
-  if (!verifyAdminSession(req)) {
+  if (!await checkAuth(req)) {
     return NextResponse.json(
       { error: 'Unauthorized', message: 'Authentication required' },
       { status: 401 }
@@ -37,7 +54,7 @@ export async function GET(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
   // Check authentication using session cookie
-  if (!verifyAdminSession(req)) {
+  if (!await checkAuth(req)) {
     return NextResponse.json(
       { error: 'Unauthorized', message: 'Authentication required' },
       { status: 401 }
@@ -81,7 +98,7 @@ export async function PATCH(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   // Check authentication using session cookie
-  if (!verifyAdminSession(req)) {
+  if (!await checkAuth(req)) {
     return NextResponse.json(
       { error: 'Unauthorized', message: 'Authentication required' },
       { status: 401 }
