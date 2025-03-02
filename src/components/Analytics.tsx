@@ -56,30 +56,8 @@ export function AnalyticsScripts({
 }
 
 /**
- * Analytics tracking component that handles page views
- * This component uses client-side hooks and needs to be wrapped in a Suspense boundary
- */
-export function AnalyticsPageTracker({
-  googleAnalyticsId
-}: Pick<AnalyticsProps, 'googleAnalyticsId'>) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Track page views in Google Analytics when the route changes
-  useEffect(() => {
-    if (googleAnalyticsId && window.gtag) {
-      window.gtag('config', googleAnalyticsId, {
-        page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : ''),
-      });
-    }
-  }, [pathname, searchParams, googleAnalyticsId]);
-
-  return null; // This component doesn't render anything
-}
-
-/**
- * Main Analytics component that exports both scripts and tracker
- * This allows for more flexible usage based on the context
+ * Main Analytics component that includes script loading functionality
+ * Safe to use in <head> section as it doesn't use client-side hooks
  */
 export default function Analytics({
   googleAnalyticsId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
