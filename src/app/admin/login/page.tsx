@@ -43,7 +43,6 @@ export default function AdminLogin() {
       }
       
       // Also save the password as API key in localStorage as a fallback
-      // This helps with serverless environments where sessions might not persist
       localStorage.setItem('admin_key', password);
       
       toast({
@@ -116,7 +115,7 @@ export default function AdminLogin() {
                   <div className="flex items-start">
                     <InfoIcon className="h-4 w-4 text-blue-600 mt-0.5 mr-2" />
                     <p className="text-xs text-blue-700">
-                      Your admin key will also be securely stored as a fallback authentication method.
+                      Your admin key will also be securely stored for fallback authentication.
                       This helps with session issues in serverless environments.
                     </p>
                   </div>
