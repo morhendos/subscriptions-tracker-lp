@@ -20,7 +20,17 @@ export default function AdminLayout({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/admin/auth');
+        // First, check if there's a stored admin key in localStorage as a fallback
+        const storedKey = localStorage.getItem('admin_key');
+        const headers: HeadersInit = {};
+        
+        // If we have a stored key, add it to the request headers
+        if (storedKey) {
+          headers['x-api-key'] = storedKey;
+        }
+        
+        // Make the auth check request with optional API key header
+        const response = await fetch('/api/admin/auth', { headers });
         const data = await response.json();
         
         setIsAuthenticated(data.authenticated);
@@ -55,6 +65,9 @@ export default function AdminLayout({
       await fetch('/api/admin/auth', {
         method: 'DELETE'
       });
+      
+      // Also clear the localStorage key on logout
+      localStorage.removeItem('admin_key');
       
       setIsAuthenticated(false);
       router.push('/admin/login');
