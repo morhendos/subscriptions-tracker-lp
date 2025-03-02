@@ -1,28 +1,37 @@
 # Subscription & Payment Implementation Plan
 
-This document outlines the implementation plan for the subscription and payment system for Subscriptions Tracker.
+This document outlines the implementation plan for the subscription and payment
+system for Subscriptions Tracker.
 
 ## Overview
 
-- **Current State**: Landing page advertises Free and Lifetime plans, but the application has no payment integration yet
-- **Goal**: Implement a coherent user journey with payment processing while minimizing disruption
-- **Approach**: Phased implementation with feature flags and progressive enhancement
+- **Current State**: Landing page advertises Free and Lifetime plans, but the
+  application has no payment integration yet
+- **Goal**: Implement a coherent user journey with payment processing while
+  minimizing disruption
+- **Approach**: Phased implementation with feature flags and progressive
+  enhancement
 
 ## Feature Flag System
 
-The feature flag system allows toggling features on and off without changing code. The main feature flags are:
+The feature flag system allows toggling features on and off without changing
+code. The main feature flags are:
 
 ```typescript
 // src/config/features.ts
 export const FEATURES = {
   // Core feature flags
-  PAYMENT_ENABLED: false,          // Toggle when payment system is ready
+  PAYMENT_ENABLED: false, // Toggle when payment system is ready
   PREMIUM_FEATURES_ENABLED: false, // For testing premium features
-  
+
   // User experience flags
-  WAITLIST_ENABLED: true,          // Email collection for premium plans
-  SHOW_COMING_SOON: true,          // Display "coming soon" badges
-}
+  WAITLIST_ENABLED: true, // Email collection for premium plans
+  SHOW_COMING_SOON: true, // Display "coming soon" badges
+
+  // Development & testing flags
+  MOCK_PAYMENT_FLOW: false, // Enable simulated payment
+  DEBUG_MODE: false, // Show debug information in UI
+};
 ```
 
 ## Implementation Phases
@@ -30,29 +39,33 @@ export const FEATURES = {
 ### Phase 1: User Expectation Management
 
 - [x] **Feature Flag System**
+
   - [x] Create configuration file for feature flags
   - [x] Implement flag for payment features
   - [x] Implement flag for premium features
   - [x] Add toggle mechanism for testing environments
 
 - [x] **"Coming Soon" Implementation**
+
   - [x] Create modal component for premium features
   - [x] Modify pricing buttons to show modal for premium plans
   - [x] Design clear messaging about upcoming premium features
   - [x] Implement redirection to free signup from modal
 
 - [x] **Email Collection System UI**
+
   - [x] Create waitlist form UI component
   - [x] Create waitlist page
   - [x] Add API endpoint structure for email storage
   - [x] Set up success/error handling
 
-- [ ] **Waitlist Database Implementation**
-  - [ ] Set up database collection/table for waitlist entries
-  - [ ] Create schema for waitlist entries (name, email, timestamp, source)
-  - [ ] Update API endpoint to store submissions in database
-  - [ ] Add email validation and duplicate checking
-  - [ ] Implement admin view for waitlist entries
+- [x] **Waitlist Database Implementation**
+
+  - [x] Set up database collection/table for waitlist entries
+  - [x] Create schema for waitlist entries (name, email, timestamp, source)
+  - [x] Update API endpoint to store submissions in database
+  - [x] Add email validation and duplicate checking
+  - [x] Implement admin view for waitlist entries
 
 - [ ] **Premium Feature Gating**
   - [x] Create PremiumFeatureGate component
@@ -62,11 +75,13 @@ export const FEATURES = {
 ### Phase 2: Mock Payment Architecture
 
 - [ ] **Mock Payment Provider**
+
   - [ ] Create PaymentProvider interface
   - [ ] Implement MockPaymentProvider class
   - [ ] Build simulated payment flow UI
 
 - [ ] **Subscription Management Service**
+
   - [ ] Design SubscriptionPlan interface
   - [ ] Implement plan data structures
   - [ ] Create SubscriptionService class
@@ -79,6 +94,7 @@ export const FEATURES = {
 ### Phase 3: Payment Integration
 
 - [ ] **Payment Processor Integration**
+
   - [ ] Select payment provider (Stripe, PayPal, etc.)
   - [ ] Implement payment API endpoints
   - [ ] Build secure checkout flow
@@ -96,13 +112,13 @@ export const FEATURES = {
 ```typescript
 // MongoDB schema example
 interface WaitlistEntry {
-  name: string;            // User's name
-  email: string;           // User's email (indexed, unique)
-  createdAt: Date;         // Timestamp of submission
-  source: string;          // Where they signed up (pricing page, feature gate, etc.)
-  interests?: string[];    // Optional: specific premium features they're interested in
-  notes?: string;          // Optional: additional information
-  contacted: boolean;      // Whether they've been contacted about premium launch
+  name: string; // User's name
+  email: string; // User's email (indexed, unique)
+  createdAt: Date; // Timestamp of submission
+  source: string; // Where they signed up (pricing page, feature gate, etc.)
+  interests?: string[]; // Optional: specific premium features they're interested in
+  notes?: string; // Optional: additional information
+  contacted: boolean; // Whether they've been contacted about premium launch
   convertedToCustomer: boolean; // Whether they've converted to a paid customer
 }
 ```
@@ -111,55 +127,68 @@ interface WaitlistEntry {
 
 ```typescript
 // src/app/api/waitlist/route.ts
-import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/database';
+import { NextResponse } from "next/server";
+import { waitlistService } from "@/lib/services/waitlist-service";
+import { FEATURES } from "@/config/features";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  // Check if waitlist is enabled
+  if (!FEATURES.WAITLIST_ENABLED) {
+    return NextResponse.json(
+      { error: "Waitlist is currently disabled" },
+      { status: 403 }
+    );
+  }
+
   try {
-    const { email, name, source = 'waitlist_page' } = await request.json();
-    
+    const {
+      email,
+      name,
+      source = "waitlist_page",
+      interests,
+    } = await request.json();
+
     // Validate inputs
     if (!email || !name) {
       return NextResponse.json(
-        { error: 'Email and name are required' },
+        { error: "Email and name are required" },
         { status: 400 }
       );
     }
-    
-    // Connect to database
-    const db = await connectToDatabase();
-    const waitlistCollection = db.collection('waitlist');
-    
-    // Check for duplicate email
-    const existingEntry = await waitlistCollection.findOne({ email });
-    if (existingEntry) {
+
+    // Validate email format
+    if (!isValidEmail(email)) {
       return NextResponse.json(
-        { success: false, message: 'Email already registered for waitlist' },
-        { status: 409 }
+        { error: "Invalid email format" },
+        { status: 400 }
       );
     }
-    
-    // Create new entry
-    const result = await waitlistCollection.insertOne({
+
+    // Add to waitlist
+    const result = await waitlistService.addToWaitlist({
       name,
       email,
       source,
-      createdAt: new Date(),
-      contacted: false,
-      convertedToCustomer: false
+      interests,
     });
-    
-    // Optional: Send confirmation email
-    // await sendConfirmationEmail(email, name);
-    
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, message: result.message },
+        { status: 409 } // Conflict status for duplicate emails
+      );
+    }
+
     return NextResponse.json(
-      { success: true, message: 'Added to waitlist', id: result.insertedId },
+      { success: true, message: "Added to waitlist", id: result.id },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Waitlist error:', error);
+    console.error("Waitlist error:", error);
     return NextResponse.json(
-      { error: 'Failed to join waitlist' },
+      { error: "Failed to join waitlist" },
       { status: 500 }
     );
   }
@@ -168,43 +197,97 @@ export async function POST(request: Request) {
 
 ### Admin Dashboard
 
-Create a simple admin dashboard to:
-1. View all waitlist entries
-2. Export data as CSV
-3. Mark entries as contacted
-4. Filter and sort entries
-5. Add notes to entries
+The admin dashboard features:
 
-This can be built as a protected route in the main application or as a separate admin tool.
+1. View all waitlist entries with pagination
+2. Export data as CSV
+3. Mark entries as contacted/converted
+4. Filter and sort entries
+5. View statistics about signups
+
+Admin route: `/admin/waitlist`
 
 ### Database Service
 
 ```typescript
-// src/lib/database.ts
-import { MongoClient } from 'mongodb';
+// src/lib/services/waitlist-service.ts
+import { Collection, Db, ObjectId } from "mongodb";
+import { connectToDatabase } from "../database";
+import {
+  WaitlistEntry,
+  WaitlistEntryWithId,
+  CreateWaitlistEntryInput,
+} from "@/types/waitlist";
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const dbName = process.env.MONGODB_DB || 'subscriptions_tracker';
+class WaitlistService {
+  private db: Db | null = null;
+  private collection: Collection | null = null;
+  private collectionName = "waitlist";
 
-let cachedClient = null;
-let cachedDb = null;
+  /**
+   * Initialize the database connection
+   */
+  private async init(): Promise<Collection> {
+    if (this.collection) return this.collection;
 
-export async function connectToDatabase() {
-  if (cachedDb) {
-    return cachedDb;
+    this.db = await connectToDatabase();
+    this.collection = this.db.collection(this.collectionName);
+
+    // Create indexes if they don't exist
+    await this.collection.createIndex({ email: 1 }, { unique: true });
+    await this.collection.createIndex({ createdAt: -1 });
+
+    return this.collection;
   }
 
-  if (!cachedClient) {
-    cachedClient = await MongoClient.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+  /**
+   * Add a new entry to the waitlist
+   */
+  async addToWaitlist(
+    entry: CreateWaitlistEntryInput
+  ): Promise<{ success: boolean; message: string; id?: string }> {
+    try {
+      const collection = await this.init();
+
+      // Check if email already exists
+      const existingEntry = await collection.findOne({ email: entry.email });
+      if (existingEntry) {
+        return {
+          success: false,
+          message: "Email already registered for waitlist",
+        };
+      }
+
+      // Create new entry
+      const result = await collection.insertOne({
+        name: entry.name,
+        email: entry.email,
+        source: entry.source || "waitlist_page",
+        interests: entry.interests || [],
+        createdAt: new Date(),
+        contacted: false,
+        convertedToCustomer: false,
+      });
+
+      return {
+        success: true,
+        message: "Added to waitlist successfully",
+        id: result.insertedId.toString(),
+      };
+    } catch (error) {
+      console.error("Error adding to waitlist:", error);
+      return {
+        success: false,
+        message: "Failed to add to waitlist",
+      };
+    }
   }
 
-  const db = cachedClient.db(dbName);
-  cachedDb = db;
-  return db;
+  // Additional methods for admin use...
 }
+
+// Export as singleton
+export const waitlistService = new WaitlistService();
 ```
 
 ## Component Usage Guide
@@ -214,18 +297,16 @@ export async function connectToDatabase() {
 Display a modal for premium features that aren't yet available:
 
 ```tsx
-import ComingSoonModal from '@/components/ComingSoonModal';
+import ComingSoonModal from "@/components/ComingSoonModal";
 
 // Inside your component
 const [showModal, setShowModal] = useState(false);
 
 return (
   <>
-    <Button onClick={() => setShowModal(true)}>
-      Get Premium Feature
-    </Button>
-    
-    <ComingSoonModal 
+    <Button onClick={() => setShowModal(true)}>Get Premium Feature</Button>
+
+    <ComingSoonModal
       isOpen={showModal}
       onClose={() => setShowModal(false)}
       planName="Lifetime Plan"
@@ -239,7 +320,7 @@ return (
 Gate premium features behind a paywall or waitlist:
 
 ```tsx
-import { PremiumFeatureGate } from '@/components/PremiumFeatureGate';
+import { PremiumFeatureGate } from "@/components/PremiumFeatureGate";
 
 // Inside your component
 return (
@@ -259,7 +340,7 @@ return (
 Collect user information for premium feature waitlist:
 
 ```tsx
-import { WaitlistForm } from '@/components/WaitlistForm';
+import { WaitlistForm } from "@/components/WaitlistForm";
 
 // Inside your page component
 return (
@@ -272,15 +353,18 @@ return (
 
 ## Testing the Implementation
 
-To test different states of the payment system, modify the feature flags in `src/config/features.ts`:
+To test different states of the payment system, modify the feature flags in
+`src/config/features.ts`:
 
 1. **Test Free Features Only**:
+
    ```typescript
    PAYMENT_ENABLED: false,
    PREMIUM_FEATURES_ENABLED: false,
    ```
 
 2. **Test Premium Features Without Payment**:
+
    ```typescript
    PAYMENT_ENABLED: false,
    PREMIUM_FEATURES_ENABLED: true,
@@ -302,7 +386,8 @@ To test different states of the payment system, modify the feature flags in `src
 
 ## References
 
-- **Feature Flags**: [Martin Fowler's Feature Toggles](https://martinfowler.com/articles/feature-toggles.html)
+- **Feature Flags**:
+  [Martin Fowler's Feature Toggles](https://martinfowler.com/articles/feature-toggles.html)
 - **Payment Processing**: [Stripe Documentation](https://stripe.com/docs)
 - **UI Components**: [shadcn/ui Documentation](https://ui.shadcn.com)
 - **MongoDB**: [MongoDB Documentation](https://docs.mongodb.com/)
