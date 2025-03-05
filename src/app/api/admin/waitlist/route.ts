@@ -1,44 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { waitlistService } from '@/lib/services/waitlist-service';
-import { cookies } from 'next/headers';
-import { verifyAdminSession } from '@/lib/services/auth-service';
-
-/**
- * Helper to check authentication for admin API routes
- */
-const checkAdminAuth = async (req: NextRequest) => {
-  // Get the session token from cookies
-  const cookieStore = cookies();
-  const sessionToken = cookieStore.get('admin_session')?.value;
-  
-  if (!sessionToken) {
-    return { authenticated: false, reason: 'no_session' };
-  }
-  
-  // Use the auth service to verify the session
-  const result = await verifyAdminSession(sessionToken);
-  
-  if (!result.valid) {
-    return { authenticated: false, reason: 'invalid_session', userId: undefined };
-  }
-  
-  return { authenticated: true, userId: result.userId };
-};
+import { withAdminAuth } from '@/lib/middleware/auth-middleware';
 
 /**
  * GET /api/admin/waitlist - Get all waitlist entries (admin only)
  */
-export async function GET(req: NextRequest) {
-  // Check authentication using session cookie
-  const authResult = await checkAdminAuth(req);
-  
-  if (!authResult.authenticated) {
-    return NextResponse.json(
-      { error: 'Unauthorized', reason: authResult.reason },
-      { status: 401 }
-    );
-  }
-
+export const GET = withAdminAuth(async (req: NextRequest) => {
   try {
     const entries = await waitlistService.getAllEntries();
     const stats = await waitlistService.getStats();
@@ -55,22 +22,12 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PATCH /api/admin/waitlist/:id - Update a waitlist entry (admin only)
  */
-export async function PATCH(req: NextRequest) {
-  // Check authentication using session cookie
-  const authResult = await checkAdminAuth(req);
-  
-  if (!authResult.authenticated) {
-    return NextResponse.json(
-      { error: 'Unauthorized', reason: authResult.reason },
-      { status: 401 }
-    );
-  }
-
+export const PATCH = withAdminAuth(async (req: NextRequest) => {
   try {
     const { id, ...updates } = await req.json();
     
@@ -101,22 +58,12 @@ export async function PATCH(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * DELETE /api/admin/waitlist/:id - Delete a waitlist entry (admin only)
  */
-export async function DELETE(req: NextRequest) {
-  // Check authentication using session cookie
-  const authResult = await checkAdminAuth(req);
-  
-  if (!authResult.authenticated) {
-    return NextResponse.json(
-      { error: 'Unauthorized', reason: authResult.reason },
-      { status: 401 }
-    );
-  }
-
+export const DELETE = withAdminAuth(async (req: NextRequest) => {
   try {
     const { id } = await req.json();
     
@@ -147,4 +94,4 @@ export async function DELETE(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
