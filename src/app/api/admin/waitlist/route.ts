@@ -6,17 +6,23 @@ import { verifyAdminSession } from '@/lib/services/auth-service';
 /**
  * Helper to check authentication for admin API routes
  */
-const checkAuth = async (req: NextRequest) => {
+const checkAdminAuth = async (req: NextRequest) => {
   // Get the session token from cookies
-  const sessionToken = req.cookies.get('admin_session')?.value;
+  const cookieStore = cookies();
+  const sessionToken = cookieStore.get('admin_session')?.value;
   
   if (!sessionToken) {
-    return false;
+    return { authenticated: false, reason: 'no_session' };
   }
   
   // Use the auth service to verify the session
   const result = await verifyAdminSession(sessionToken);
-  return result.valid;
+  
+  if (!result.valid) {
+    return { authenticated: false, reason: 'invalid_session', userId: undefined };
+  }
+  
+  return { authenticated: true, userId: result.userId };
 };
 
 /**
@@ -24,9 +30,11 @@ const checkAuth = async (req: NextRequest) => {
  */
 export async function GET(req: NextRequest) {
   // Check authentication using session cookie
-  if (!await checkAuth(req)) {
+  const authResult = await checkAdminAuth(req);
+  
+  if (!authResult.authenticated) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Authentication required' },
+      { error: 'Unauthorized', reason: authResult.reason },
       { status: 401 }
     );
   }
@@ -43,7 +51,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Error fetching waitlist entries:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch waitlist entries' },
+      { error: 'Failed to fetch waitlist entries', details: String(error) },
       { status: 500 }
     );
   }
@@ -54,9 +62,11 @@ export async function GET(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
   // Check authentication using session cookie
-  if (!await checkAuth(req)) {
+  const authResult = await checkAdminAuth(req);
+  
+  if (!authResult.authenticated) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Authentication required' },
+      { error: 'Unauthorized', reason: authResult.reason },
       { status: 401 }
     );
   }
@@ -87,7 +97,7 @@ export async function PATCH(req: NextRequest) {
   } catch (error) {
     console.error('Error updating waitlist entry:', error);
     return NextResponse.json(
-      { error: 'Failed to update waitlist entry' },
+      { error: 'Failed to update waitlist entry', details: String(error) },
       { status: 500 }
     );
   }
@@ -98,9 +108,11 @@ export async function PATCH(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   // Check authentication using session cookie
-  if (!await checkAuth(req)) {
+  const authResult = await checkAdminAuth(req);
+  
+  if (!authResult.authenticated) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Authentication required' },
+      { error: 'Unauthorized', reason: authResult.reason },
       { status: 401 }
     );
   }
@@ -131,7 +143,7 @@ export async function DELETE(req: NextRequest) {
   } catch (error) {
     console.error('Error deleting waitlist entry:', error);
     return NextResponse.json(
-      { error: 'Failed to delete waitlist entry' },
+      { error: 'Failed to delete waitlist entry', details: String(error) },
       { status: 500 }
     );
   }
