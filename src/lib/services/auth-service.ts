@@ -109,13 +109,48 @@ const hasAdminRole = (roles: any[]): boolean => {
   }
 };
 
-// Simple in-memory session store - this is reset on server restarts
-const sessions = new Map();
+/**
+ * Creates a new admin session in the database
+ */
+const createAdminSession = async (userId: string, userAgent?: string, ipAddress?: string): Promise<string | null> => {
+  try {
+    const client = await getPrisma();
+    const token = randomBytes(32).toString('hex');
+    
+    // Set expiration time (30 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+    
+    // Create session in database
+    await client.adminSession.create({
+      data: {
+        userId,
+        token,
+        expires: expiresAt,
+        userAgent,
+        ipAddress
+      }
+    });
+    
+    console.log(`Created database session for user ${userId}`);
+    console.log(`Session token (first 10 chars): ${token.substring(0, 10)}...`);
+    
+    return token;
+  } catch (error) {
+    console.error('Error creating admin session:', error);
+    return null;
+  }
+};
 
 /**
  * Authenticates a user and checks if they have admin privileges
  */
-export const authenticateAdmin = async (email: string, password: string): Promise<{ 
+export const authenticateAdmin = async (
+  email: string, 
+  password: string, 
+  userAgent?: string, 
+  ipAddress?: string
+): Promise<{ 
   authenticated: boolean; 
   userId?: string;
   sessionToken?: string;
@@ -171,20 +206,22 @@ export const authenticateAdmin = async (email: string, password: string): Promis
       return { authenticated: false };
     }
     
-    // Create a session token
-    const token = randomBytes(32).toString('hex');
+    // Create a session token and store in database
+    const token = await createAdminSession(user.id, userAgent, ipAddress);
     
-    // Store session
-    sessions.set(token, {
-      userId: user.id,
-      email: user.email,
-      created: new Date(),
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    if (!token) {
+      console.error('Failed to create session token');
+      return { authenticated: false };
+    }
+    
+    // Update user last login time
+    await client.user.update({
+      where: { id: user.id },
+      data: {
+        lastLogin: new Date(),
+        failedLoginAttempts: 0 // Reset failed attempts on successful login
+      }
     });
-    
-    console.log(`Created session for user ${user.email}`);
-    console.log(`Session token (first 10 chars): ${token.substring(0, 10)}...`);
-    console.log(`Total active sessions: ${sessions.size}`);
     
     return { 
       authenticated: true,
@@ -205,22 +242,32 @@ export const verifyAdminSession = async (token: string): Promise<{
   userId?: string;
 }> => {
   try {
-    // Get session from the map
-    const session = sessions.get(token);
+    const client = await getPrisma();
     
-    // If session doesn't exist or is expired, verification fails
+    // Find the session in the database
+    const session = await client.adminSession.findUnique({
+      where: { token }
+    });
+    
+    // If session doesn't exist, verification fails
     if (!session) {
       console.log(`Session not found: ${token.substring(0, 10)}...`);
       return { valid: false };
     }
     
+    // If session is expired, verification fails and we delete it
     if (session.expires < new Date()) {
       console.log(`Session expired: ${token.substring(0, 10)}...`);
-      sessions.delete(token);
+      
+      // Clean up expired session
+      await client.adminSession.delete({
+        where: { id: session.id }
+      });
+      
       return { valid: false };
     }
     
-    console.log(`Session verified for user: ${session.email}`);
+    console.log(`Session verified for user ID: ${session.userId}`);
     
     return { 
       valid: true,
@@ -240,8 +287,12 @@ export const refreshAdminSession = async (token: string): Promise<{
   newToken?: string;
 }> => {
   try {
-    // Get session from the map
-    const session = sessions.get(token);
+    const client = await getPrisma();
+    
+    // Find the session in the database
+    const session = await client.adminSession.findUnique({
+      where: { token }
+    });
     
     // If session doesn't exist or is expired, refresh fails
     if (!session || session.expires < new Date()) {
@@ -251,15 +302,21 @@ export const refreshAdminSession = async (token: string): Promise<{
     // Create a new token
     const newToken = randomBytes(32).toString('hex');
     
-    // Store the new session and remove the old one
-    sessions.set(newToken, {
-      ...session,
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    // Set new expiration time (30 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+    
+    // Update the session with new token and expiration
+    await client.adminSession.update({
+      where: { id: session.id },
+      data: {
+        token: newToken,
+        expires: expiresAt,
+        updatedAt: new Date()
+      }
     });
     
-    sessions.delete(token);
-    
-    console.log(`Session refreshed for user: ${session.email}`);
+    console.log(`Session refreshed for user ID: ${session.userId}`);
     console.log(`New token (first 10 chars): ${newToken.substring(0, 10)}...`);
     
     return { 
@@ -277,12 +334,25 @@ export const refreshAdminSession = async (token: string): Promise<{
  */
 export const invalidateAdminSession = async (token: string): Promise<boolean> => {
   try {
-    // Remove the session from the map
-    const hadSession = sessions.has(token);
-    sessions.delete(token);
+    const client = await getPrisma();
+    
+    // Find the session in the database
+    const session = await client.adminSession.findUnique({
+      where: { token }
+    });
+    
+    // If session doesn't exist, invalidation technically succeeds
+    if (!session) {
+      console.log(`Session not found: ${token.substring(0, 10)}...`);
+      return true;
+    }
+    
+    // Delete the session from the database
+    await client.adminSession.delete({
+      where: { id: session.id }
+    });
     
     console.log(`Session invalidated: ${token.substring(0, 10)}...`);
-    console.log(`Session existed: ${hadSession}`);
     
     return true;
   } catch (error) {
@@ -328,5 +398,51 @@ export const getAdminUser = async (userId: string): Promise<{
   } catch (error) {
     console.error('Get admin user error:', error);
     return null;
+  }
+};
+
+/**
+ * Gets all active admin sessions
+ */
+export const getActiveSessions = async (): Promise<number> => {
+  try {
+    const client = await getPrisma();
+    
+    // Count active sessions (not expired)
+    const count = await client.adminSession.count({
+      where: {
+        expires: {
+          gt: new Date()
+        }
+      }
+    });
+    
+    return count;
+  } catch (error) {
+    console.error('Error getting active sessions:', error);
+    return 0;
+  }
+};
+
+/**
+ * Clean up expired sessions (can be used in a cron job)
+ */
+export const cleanupExpiredSessions = async (): Promise<number> => {
+  try {
+    const client = await getPrisma();
+    
+    // Delete expired sessions
+    const result = await client.adminSession.deleteMany({
+      where: {
+        expires: {
+          lt: new Date()
+        }
+      }
+    });
+    
+    return result.count;
+  } catch (error) {
+    console.error('Error cleaning up expired sessions:', error);
+    return 0;
   }
 };
