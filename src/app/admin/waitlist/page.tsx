@@ -42,7 +42,6 @@ export default function WaitlistAdmin() {
   const [error, setError] = useState<string | null>(null);
   const [isAuthError, setIsAuthError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [adminKey, setAdminKey] = useState<string | null>(null);
   const [stats, setStats] = useState({
     total: 0,
     contacted: 0,
@@ -52,16 +51,6 @@ export default function WaitlistAdmin() {
   
   const router = useRouter();
   const { toast } = useToast();
-
-  // Get admin key from localStorage if available
-  useEffect(() => {
-    // This is less secure but helps with testing in production
-    // Ideally, you'd use a more secure method in a real-world app
-    const storedKey = localStorage.getItem('admin_key');
-    if (storedKey) {
-      setAdminKey(storedKey);
-    }
-  }, []);
   
   // Fetch waitlist entries
   useEffect(() => {
@@ -70,14 +59,11 @@ export default function WaitlistAdmin() {
         setLoading(true);
         setIsAuthError(false);
         
-        // Create headers - use session auth primarily, but include API key header as fallback
-        const headers: HeadersInit = {};
-        if (adminKey) {
-          headers['x-api-key'] = adminKey;
-        }
-        
-        // API requests use session cookies now for authentication
-        const response = await fetch('/api/admin/waitlist', { headers });
+        // API requests use session cookies for authentication
+        const response = await fetch('/api/admin/waitlist', {
+          method: 'GET',
+          credentials: 'include' // Important - include cookies in the request
+        });
         
         if (response.status === 401) {
           setIsAuthError(true);
@@ -131,7 +117,7 @@ export default function WaitlistAdmin() {
     };
     
     fetchEntries();
-  }, [toast, adminKey]);
+  }, [toast]);
   
   // Filter entries based on search query
   const filteredEntries = entries.filter(entry => {
@@ -147,18 +133,13 @@ export default function WaitlistAdmin() {
   // Toggle contacted status
   const toggleContacted = async (id: string, currentValue: boolean) => {
     try {
-      // Create headers - include API key header if available
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json'
-      };
-      if (adminKey) {
-        headers['x-api-key'] = adminKey;
-      }
-      
       // Call the API to update the entry
       const response = await fetch('/api/admin/waitlist', {
         method: 'PATCH',
-        headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({ id, contacted: !currentValue })
       });
       
@@ -209,18 +190,13 @@ export default function WaitlistAdmin() {
   // Toggle converted status
   const toggleConverted = async (id: string, currentValue: boolean) => {
     try {
-      // Create headers - include API key header if available
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json'
-      };
-      if (adminKey) {
-        headers['x-api-key'] = adminKey;
-      }
-      
       // Call the API to update the entry
       const response = await fetch('/api/admin/waitlist', {
         method: 'PATCH',
-        headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({ id, convertedToCustomer: !currentValue })
       });
       
@@ -313,20 +289,6 @@ export default function WaitlistAdmin() {
     });
   };
   
-  // Direct API key authentication
-  const handleDirectAuth = () => {
-    const key = prompt('Enter your admin API key for direct authentication:');
-    if (key) {
-      // Save to localStorage for future use
-      localStorage.setItem('admin_key', key);
-      setAdminKey(key);
-      toast({
-        title: 'API Key Set',
-        description: 'Using direct API key authentication as fallback',
-      });
-    }
-  };
-  
   // Show authentication error message
   if (isAuthError) {
     return (
@@ -345,19 +307,13 @@ export default function WaitlistAdmin() {
           <ShieldAlert className="h-12 w-12 mb-4 text-red-500" />
           <h2 className="text-xl font-bold mb-2">Authentication Failed</h2>
           <p className="text-center mb-6">
-            Your session has expired or you are not authenticated. Please try one of the following:
+            Your session has expired or you are not authenticated. Please login again.
           </p>
           <div className="flex gap-4 mb-6">
             <Button onClick={() => router.push('/admin/login')}>
               Go to Login
             </Button>
-            <Button variant="outline" onClick={handleDirectAuth}>
-              Use Direct API Key
-            </Button>
           </div>
-          <p className="text-xs text-red-600 mt-4">
-            Note: Direct API key authentication is a fallback method and less secure.
-          </p>
         </div>
       </div>
     );
@@ -370,14 +326,9 @@ export default function WaitlistAdmin() {
           <h1 className="text-3xl font-bold">Waitlist Management</h1>
           <p className="text-muted-foreground">Manage and track interest in premium features</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDirectAuth} size="sm">
-            Set API Key
-          </Button>
-          <Button variant="outline" onClick={() => router.push('/admin')}>
-            Back to Admin
-          </Button>
-        </div>
+        <Button variant="outline" onClick={() => router.push('/admin')}>
+          Back to Admin
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -525,7 +476,6 @@ export default function WaitlistAdmin() {
           <p className="font-bold mb-1">Debug Information:</p>
           <ul className="list-disc pl-5">
             <li>Environment: {process.env.NODE_ENV}</li>
-            <li>Using direct API key: {adminKey ? 'Yes' : 'No'}</li>
             <li>Total entries loaded: {entries.length}</li>
           </ul>
         </div>
