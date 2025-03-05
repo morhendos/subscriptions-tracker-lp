@@ -57,6 +57,12 @@ export default function AdminLogin() {
         description: 'Your session has expired. Please sign in again',
         variant: 'destructive',
       });
+    } else if (errorType === 'InvalidSession') {
+      toast({
+        title: 'Invalid session',
+        description: 'Your session is no longer valid. Please sign in again',
+        variant: 'destructive',
+      });
     }
   }, [callbackUrl, errorType, router, toast]);
   
@@ -105,6 +111,16 @@ export default function AdminLogin() {
       // Log debug information
       console.log("Login successful, redirecting to:", cleanCallbackUrl);
       
+      // Store token in localStorage for persistence
+      if (data.token) {
+        localStorage.setItem('admin_auth_token', data.token);
+      }
+      
+      // Store user data in localStorage
+      if (data.user) {
+        localStorage.setItem('admin_auth_user', JSON.stringify(data.user));
+      }
+      
       // If authentication successful, show success message and redirect
       toast({
         title: 'Authentication successful',
@@ -125,6 +141,20 @@ export default function AdminLogin() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Handle demo login
+  const handleDemoLogin = async () => {
+    setEmail('demo@example.com');
+    setPassword('demo123');
+    
+    // Wait for state to update, then submit the form
+    // Note: This is not optimal, but works for demo purposes
+    setTimeout(() => {
+      document.getElementById('login-form')?.dispatchEvent(
+        new Event('submit', { cancelable: true, bubbles: true })
+      );
+    }, 100);
   };
   
   // Show loading state while checking session
@@ -165,7 +195,7 @@ export default function AdminLogin() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit}>
+            <form id="login-form" onSubmit={handleSubmit}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
@@ -210,6 +240,18 @@ export default function AdminLogin() {
                     'Sign In'
                   )}
                 </Button>
+                
+                {process.env.NODE_ENV !== 'production' && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleDemoLogin} 
+                    disabled={loading} 
+                    className="mt-2"
+                  >
+                    Demo Login
+                  </Button>
+                )}
                 
                 <div className="mt-4 bg-muted/50 border border-muted rounded px-4 py-3">
                   <div className="flex items-start">
