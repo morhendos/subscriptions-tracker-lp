@@ -2,6 +2,12 @@ subscription-tracker/
 ├── ANALYTICS.md
 ├── CHANGELOG.md
 ├── README.md
+├── app
+│   ├── admin
+│   │   └── waitlist
+│   └── api
+│       └── admin
+│           └── waitlist
 ├── bun.lockb
 ├── components.json
 ├── docs
