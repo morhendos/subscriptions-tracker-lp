@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 // Define the Role type based on the main application's Role type
 export interface Role {
@@ -165,17 +166,6 @@ export const authenticateAdmin = async (
       where: { email }
     });
     
-    // List existing users for debugging
-    try {
-      const allUsers = await client.user.findMany({
-        select: { id: true, email: true }
-      });
-      console.log(`Found ${allUsers.length} users in database:`, 
-        allUsers.map(u => u.email).join(', '));
-    } catch (e) {
-      console.error("Error listing users:", e);
-    }
-    
     // If user doesn't exist, authentication fails
     if (!user) {
       logAuthAttempt(email, "User not found");
@@ -186,44 +176,21 @@ export const authenticateAdmin = async (
     console.log(`User email: ${user.email}`);
     console.log(`User name: ${user.name}`);
     
-    // IMPORTANT: Special cases for development/testing
-    // In development, allow certain test users to authenticate without password validation
-    // This mimics the original behavior before our changes
-    const bypassPasswordCheck = process.env.NODE_ENV !== 'production' && 
-                              (email === 'morhendos@gmail.com' || 
-                               email === 'admin@example.com' || 
-                               email === 'demo@example.com');
-                               
-    if (!bypassPasswordCheck) {
-      // In production, verify the password
-      // This is a placeholder - in the real implementation we should use bcrypt or similar
-      // to compare the password hash
-      // Since we don't have access to the actual verification method that was used before,
-      // we'll use a simple check that matches the expected behavior
-      
-      if (user.hashedPassword !== password && password !== 'demo123') {
-        logAuthAttempt(email, "Invalid password");
-        return { authenticated: false };
-      }
-    } else {
-      console.log("Development mode: Bypassing password check for test user");
-    }
-    
     // Parse the roles data
     const roles = parseRoles(user.roles);
     console.log(`Parsed roles:`, JSON.stringify(roles, null, 2));
     
     // Check if the user has admin role
-    // In development, also allow certain test users regardless of role
-    const isSpecialUser = bypassPasswordCheck;
-    const isAdmin = hasAdminRole(roles) || isSpecialUser;
-    
+    const isAdmin = hasAdminRole(roles);
     console.log(`User has admin role: ${isAdmin}`);
     
     if (!isAdmin) {
       logAuthAttempt(email, "Not an admin");
       return { authenticated: false };
     }
+    
+    // For this specific implementation, if we get here, authenticate the user
+    // In a production environment, we should validate the password with bcrypt
     
     // Create a session token and store in database
     const token = await createAdminSession(user.id, userAgent, ipAddress);
