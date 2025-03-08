@@ -1,25 +1,19 @@
 'use client';
 
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Separator } from '@/components/ui/separator';
+import { useSession } from 'next-auth/react';
+import UserProfile from '@/components/auth/UserProfile';
+import { isAdmin } from '@/lib/auth';
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { data: session, status } = useSession();
   const pathname = usePathname();
-  
-  // Simple mock authentication for demo purposes
-  // In a real application, you would use proper authentication
-  useEffect(() => {
-    // Check if authenticated - in a real app this would check session/cookies
-    // Here we're just mocking it
-    setIsAuthenticated(true);
-  }, []);
   
   // Navigation items
   const navItems = [
@@ -27,29 +21,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Waitlist', path: '/admin/waitlist' },
   ];
   
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Admin Access Required</h1>
-          <p className="text-muted-foreground mb-6">
-            You need to be authenticated to access the admin area.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            Return to Homepage
-          </Link>
-        </div>
-      </div>
-    );
+  // Check authentication status
+  const loading = status === 'loading';
+  const authenticated = status === 'authenticated';
+  const hasAdminRole = session && isAdmin(session.user);
+  
+  // Don't need to show error here since middleware will redirect to login
+  // This is just a fallback for any edge cases
+  if (!loading && (!authenticated || !hasAdminRole)) {
+    return null;
   }
   
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
-        <div className="container flex h-14 items-center">
+        <div className="container flex h-16 items-center">
           <div className="mr-4 flex">
             <Link href="/admin" className="font-semibold">
               Admin Dashboard
@@ -77,12 +63,25 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             >
               Back to Site
             </Link>
+            <div className="ml-4">
+              <UserProfile />
+            </div>
           </div>
         </div>
       </header>
-      <main className="flex-1">
-        {children}
+      
+      <main className="flex-1 p-6">
+        <div className="container mx-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-full py-16">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+            </div>
+          ) : (
+            children
+          )}
+        </div>
       </main>
+      
       <footer className="border-t py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-center text-sm text-muted-foreground md:text-left">
