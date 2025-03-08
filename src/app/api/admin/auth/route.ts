@@ -44,7 +44,10 @@ export async function POST(req: NextRequest) {
     if (!result.authenticated || !result.sessionToken) {
       console.log("Authentication failed");
       return NextResponse.json(
-        { error: 'Invalid email or password', debug: 'Authentication failed in authenticateAdmin function' },
+        { 
+          error: 'Invalid email or password', 
+          debug: result.debugInfo || 'Authentication failed in authenticateAdmin function'
+        },
         { status: 401 }
       );
     }
@@ -87,7 +90,8 @@ export async function POST(req: NextRequest) {
         email: user.email,
         name: user.name,
         roles: user.roles
-      } : null
+      } : null,
+      debug: result.debugInfo || null
     });
   } catch (error) {
     console.error('Admin authentication error:', error);
