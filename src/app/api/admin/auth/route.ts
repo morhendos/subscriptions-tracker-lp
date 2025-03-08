@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     if (!result.authenticated || !result.sessionToken) {
       console.log("Authentication failed");
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'Invalid email or password', debug: 'Authentication failed in authenticateAdmin function' },
         { status: 401 }
       );
     }
