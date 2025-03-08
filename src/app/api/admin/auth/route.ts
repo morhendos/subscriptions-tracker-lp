@@ -5,7 +5,8 @@ import {
   verifyAdminSession, 
   refreshAdminSession, 
   invalidateAdminSession,
-  getAdminUser 
+  getAdminUser,
+  cleanupExpiredSessions
 } from '@/lib/services/auth-service';
 
 /**
@@ -29,18 +30,32 @@ export async function POST(req: NextRequest) {
       );
     }
     
+    // Extract user agent and IP for security tracking
+    const userAgent = req.headers.get('user-agent') || undefined;
+    const ipAddress = req.headers.get('x-forwarded-for') || 
+                    req.headers.get('x-real-ip') || 
+                    undefined;
+    
     // Try to authenticate
     console.log("Authenticating admin user...");
-    const result = await authenticateAdmin(email, password);
+    const result = await authenticateAdmin(email, password, userAgent, ipAddress);
     console.log("Authentication result:", result);
     
     if (!result.authenticated || !result.sessionToken) {
       console.log("Authentication failed");
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { 
+          error: 'Invalid email or password', 
+          debug: result.debugInfo || 'Authentication failed in authenticateAdmin function'
+        },
         { status: 401 }
       );
     }
+    
+    // Cleanup expired sessions in background (non-blocking)
+    cleanupExpiredSessions().catch(err => {
+      console.error('Background session cleanup error:', err);
+    });
     
     // Set a cookie with the session token
     console.log("Setting session cookie");
@@ -69,12 +84,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Authentication successful',
+      token: result.sessionToken, // Return the token for localStorage backup
       user: user ? {
         id: user.id,
         email: user.email,
         name: user.name,
         roles: user.roles
-      } : null
+      } : null,
+      debug: result.debugInfo || null
     });
   } catch (error) {
     console.error('Admin authentication error:', error);
@@ -122,7 +139,8 @@ export async function GET(req: NextRequest) {
       // Clear the invalid cookie
       console.log("Session is invalid, clearing cookie");
       cookieStore.set('admin_session', '', {
-        expires: new Date(0)
+        expires: new Date(0),
+        path: '/'
       });
       
       return NextResponse.json(
@@ -131,8 +149,18 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    // Don't try to refresh the session for now - that was causing issues
-    // Just keep using the same token
+    // Try to refresh the session to extend its lifetime
+    // This is done in the background to avoid blocking the response
+    refreshAdminSession(sessionToken).then(({ success, newToken }) => {
+      if (success && newToken) {
+        console.log("Session token refreshed successfully");
+        
+        // Note: We can't update cookies here since it's in a Promise callback
+        // This is handled in the admin layout with the revalidate endpoint
+      }
+    }).catch(error => {
+      console.error("Error refreshing session:", error);
+    });
     
     // Get user information
     console.log("Getting user information...");

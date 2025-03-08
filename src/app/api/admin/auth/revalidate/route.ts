@@ -19,6 +19,12 @@ export async function POST(req: NextRequest) {
       );
     }
     
+    // Extract user agent and IP for security tracking
+    const userAgent = req.headers.get('user-agent') || undefined;
+    const ipAddress = req.headers.get('x-forwarded-for') || 
+                    req.headers.get('x-real-ip') || 
+                    undefined;
+                    
     // Verify the token 
     const result = await verifyAdminSession(token);
     
@@ -35,12 +41,15 @@ export async function POST(req: NextRequest) {
     
     // Set cookie with the session token
     const cookieStore = cookies();
+    // Use a long expiration to help with persistence
+    const expiresIn = 30 * 24 * 60 * 60; // 30 days in seconds
+    
     cookieStore.set('admin_session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: expiresIn,
       path: '/',
-      sameSite: 'strict'
+      sameSite: 'lax' // Changed from 'strict' to 'lax' to help with redirects
     });
     
     return NextResponse.json({
@@ -57,7 +66,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Session revalidation error:', error);
     return NextResponse.json(
-      { success: false, error: 'Session revalidation failed' },
+      { success: false, error: 'Session revalidation failed', details: String(error) },
       { status: 500 }
     );
   }

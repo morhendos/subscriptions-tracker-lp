@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -20,6 +20,7 @@ export default function AdminLayout({
 }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
@@ -33,12 +34,13 @@ export default function AdminLayout({
       return;
     }
     
-    // Try to get auth token from localStorage first
+    // Try to get auth token from localStorage as fallback
     const authToken = localStorage.getItem('admin_auth_token');
     const authUser = localStorage.getItem('admin_auth_user');
     
     // Helper function to fetch auth status from API
     const checkAuth = async () => {
+      setIsAuthenticating(true);
       try {
         const response = await fetch('/api/admin/auth');
         const data = await response.json();
@@ -49,6 +51,8 @@ export default function AdminLayout({
             router.push(`/admin/login?callbackUrl=${encodeURIComponent(pathname)}`);
             return false;
           }
+          
+          console.log("Trying to revalidate with local token...");
           // Try to use the local token to re-authenticate
           const reAuthResponse = await fetch('/api/admin/auth/revalidate', {
             method: 'POST',
@@ -57,6 +61,7 @@ export default function AdminLayout({
           });
           
           if (!reAuthResponse.ok) {
+            console.log("Local token revalidation failed");
             // If reauth failed, clear local storage and redirect to login
             localStorage.removeItem('admin_auth_token');
             localStorage.removeItem('admin_auth_user');
@@ -66,6 +71,8 @@ export default function AdminLayout({
           
           // Reauth successful, get updated user data
           const reAuthData = await reAuthResponse.json();
+          console.log("Local token revalidation successful");
+          
           if (reAuthData.user) {
             setUser(reAuthData.user);
             localStorage.setItem('admin_auth_user', JSON.stringify(reAuthData.user));
@@ -74,6 +81,7 @@ export default function AdminLayout({
           return false;
         } else {
           // If authenticated via API, update local state and storage
+          console.log("Server session authentication successful");
           if (data.user) {
             setUser(data.user);
             localStorage.setItem('admin_auth_user', JSON.stringify(data.user));
@@ -86,10 +94,17 @@ export default function AdminLayout({
       } catch (error) {
         console.error('Auth check error:', error);
         
-        // If there's an error but we have local user data, use that
+        // If there's an error but we have local user data, use that temporarily
+        // This provides a graceful fallback during API outages
         if (authUser) {
           try {
+            console.log("Using cached user data during API error");
             setUser(JSON.parse(authUser));
+            toast({
+              title: "Connection issue",
+              description: "Working with cached credentials. Some features may be limited.",
+              variant: "destructive"
+            });
             return true;
           } catch (e) {
             // If parsing fails, clear local storage
@@ -103,22 +118,39 @@ export default function AdminLayout({
         return false;
       } finally {
         setIsLoading(false);
+        setIsAuthenticating(false);
       }
     };
     
     // If we have a cached user, set it immediately and then check auth
+    // This improves perceived performance by showing UI faster
     if (authUser) {
       try {
-        setUser(JSON.parse(authUser));
+        console.log("Using cached user data initially while verifying");
+        const parsedUser = JSON.parse(authUser);
+        setUser(parsedUser);
         setIsLoading(false);  // Show the UI faster
       } catch (e) {
         // If parsing fails, do nothing and continue with auth check
+        console.error("Error parsing cached user:", e);
       }
     }
     
     // Always check auth to verify the session
     checkAuth();
-  }, [pathname, router]);
+    
+    // Set up a periodic check for session validity
+    // This helps with keeping the session alive and detecting session expiry
+    const intervalId = setInterval(() => {
+      if (!isAuthenticating) { // Prevent overlapping auth checks
+        checkAuth().catch(err => {
+          console.error("Periodic auth check failed:", err);
+        });
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
+    return () => clearInterval(intervalId); // Clean up the interval
+  }, [pathname, router, toast, isAuthenticating]);
   
   // Handle logout
   const handleLogout = async () => {
@@ -169,7 +201,10 @@ export default function AdminLayout({
       {/* Admin header */}
       <div className="border-b bg-background sticky top-0 z-10">
         <div className="container flex items-center justify-between h-16 px-4">
-          <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="h-5 w-5" />
+            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          </div>
           
           <div className="flex items-center gap-4">
             {/* User info */}
