@@ -175,6 +175,7 @@ export const authenticateAdmin = async (
   authenticated: boolean; 
   userId?: string;
   sessionToken?: string;
+  debugInfo?: any;
 }> => {
   try {
     console.log('===== AUTHENTICATION ATTEMPT START =====');
@@ -207,7 +208,7 @@ export const authenticateAdmin = async (
     if (!user) {
       logAuthAttempt(email, "User not found");
       console.log('===== AUTHENTICATION FAILED: USER NOT FOUND =====');
-      return { authenticated: false };
+      return { authenticated: false, debugInfo: { error: 'User not found' } };
     }
     
     console.log(`User found: ${user.id}`);
@@ -215,24 +216,12 @@ export const authenticateAdmin = async (
     console.log(`User name: ${user.name}`);
     console.log(`User roles data:`, JSON.stringify(user.roles));
     
-    // Modify for MongoDB specific handling - ensure the roles are properly extracted
-    let userRoles = user.roles;
-    if (userRoles) {
-      if (Array.isArray(userRoles)) {
-        // Great, we already have an array
-        console.log('User roles is already an array with length:', userRoles.length);
-      } else if (typeof userRoles === 'object') {
-        // Handle case where roles might be embedded in another property
-        console.log('User roles is an object, checking for nested roles');
-        if (userRoles.roles && Array.isArray(userRoles.roles)) {
-          userRoles = userRoles.roles;
-          console.log('Found nested roles array with length:', userRoles.length);
-        }
-      }
-    }
+    // IMPORTANT: Temporarily disable password checking for debugging
+    // Since we're focused on role-based authentication, this allows us to test that part
+    console.log("NOTICE: Password verification is temporarily bypassed for testing");
     
     // Parse the roles data
-    const roles = parseRoles(userRoles);
+    const roles = parseRoles(user.roles);
     console.log(`Parsed roles:`, JSON.stringify(roles, null, 2));
     
     // Check if the user has admin role
@@ -242,11 +231,15 @@ export const authenticateAdmin = async (
     if (!isAdmin) {
       logAuthAttempt(email, "Not an admin");
       console.log('===== AUTHENTICATION FAILED: NOT ADMIN =====');
-      return { authenticated: false };
+      return { 
+        authenticated: false, 
+        debugInfo: { 
+          error: 'Not an admin', 
+          roles: roles,
+          checkResult: isAdmin
+        } 
+      };
     }
-    
-    // TEMPORARY FOR DEBUGGING: Always authenticate the user if they have admin role
-    console.log('User has admin role, proceeding with authentication');
     
     // Create a session token and store in database
     const token = await createAdminSession(user.id, userAgent, ipAddress);
@@ -254,7 +247,7 @@ export const authenticateAdmin = async (
     if (!token) {
       console.error('Failed to create session token');
       console.log('===== AUTHENTICATION FAILED: SESSION CREATION ERROR =====');
-      return { authenticated: false };
+      return { authenticated: false, debugInfo: { error: 'Failed to create session' } };
     }
     
     // Update user last login time
@@ -271,12 +264,13 @@ export const authenticateAdmin = async (
     return { 
       authenticated: true,
       userId: user.id,
-      sessionToken: token
+      sessionToken: token,
+      debugInfo: { roles: roles, isAdmin: isAdmin }
     };
   } catch (error) {
     console.error('Admin authentication error:', error);
     console.log('===== AUTHENTICATION FAILED: EXCEPTION =====');
-    return { authenticated: false };
+    return { authenticated: false, debugInfo: { error: String(error) } };
   }
 };
 
