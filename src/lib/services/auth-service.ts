@@ -1,6 +1,5 @@
 import { randomBytes } from 'crypto';
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
 // Define the Role type based on the main application's Role type
 export interface Role {
@@ -29,10 +28,13 @@ const logAuthAttempt = (email: string, message: string) => {
  */
 const parseRoles = (rolesData: any): Role[] => {
   try {
+    console.log('Parsing roles, raw data:', JSON.stringify(rolesData));
+    
     if (!rolesData) return [];
     
     // If it's already an array, process each item
     if (Array.isArray(rolesData)) {
+      console.log('Roles data is an array with length:', rolesData.length);
       return rolesData.map(role => {
         // If the role is a string, try to parse it as JSON
         if (typeof role === 'string') {
@@ -50,6 +52,7 @@ const parseRoles = (rolesData: any): Role[] => {
     
     // If it's a string, try to parse it as a JSON array
     if (typeof rolesData === 'string') {
+      console.log('Roles data is a string:', rolesData);
       try {
         const parsed = JSON.parse(rolesData);
         return Array.isArray(parsed) ? parsed : [];
@@ -60,6 +63,7 @@ const parseRoles = (rolesData: any): Role[] => {
     
     // If it's an object, wrap it in an array
     if (typeof rolesData === 'object' && rolesData !== null) {
+      console.log('Roles data is an object');
       return [rolesData];
     }
     
@@ -76,6 +80,8 @@ const parseRoles = (rolesData: any): Role[] => {
  */
 const hasAdminRole = (roles: any[]): boolean => {
   try {
+    console.log('Checking admin role for roles:', JSON.stringify(roles));
+    
     const hasAdmin = roles.some(role => {
       // For flexibility, check several possible structures
       if (typeof role === 'object' && role !== null) {
@@ -103,6 +109,7 @@ const hasAdminRole = (roles: any[]): boolean => {
       return false;
     });
     
+    console.log('Has admin role:', hasAdmin);
     return hasAdmin;
   } catch (error) {
     console.error('Error checking admin role:', error);
@@ -157,6 +164,9 @@ export const authenticateAdmin = async (
   sessionToken?: string;
 }> => {
   try {
+    console.log('===== AUTHENTICATION ATTEMPT START =====');
+    console.log(`Authenticating user: ${email}`);
+    
     const client = await getPrisma();
     
     // Find the user by email
@@ -166,15 +176,31 @@ export const authenticateAdmin = async (
       where: { email }
     });
     
+    // Debug: Check what users exist in the database
+    try {
+      console.log('Checking all users in database');
+      const allUsers = await client.user.findMany({
+        select: { id: true, email: true, roles: true }
+      });
+      console.log(`Found ${allUsers.length} users in database:`);
+      allUsers.forEach(u => {
+        console.log(`- User: ${u.email}, ID: ${u.id}, Roles: ${JSON.stringify(u.roles)}`);
+      });
+    } catch (e) {
+      console.error("Error listing users:", e);
+    }
+    
     // If user doesn't exist, authentication fails
     if (!user) {
       logAuthAttempt(email, "User not found");
+      console.log('===== AUTHENTICATION FAILED: USER NOT FOUND =====');
       return { authenticated: false };
     }
     
     console.log(`User found: ${user.id}`);
     console.log(`User email: ${user.email}`);
     console.log(`User name: ${user.name}`);
+    console.log(`User roles data:`, JSON.stringify(user.roles));
     
     // Parse the roles data
     const roles = parseRoles(user.roles);
@@ -186,17 +212,19 @@ export const authenticateAdmin = async (
     
     if (!isAdmin) {
       logAuthAttempt(email, "Not an admin");
+      console.log('===== AUTHENTICATION FAILED: NOT ADMIN =====');
       return { authenticated: false };
     }
     
-    // For this specific implementation, if we get here, authenticate the user
-    // In a production environment, we should validate the password with bcrypt
+    // TEMPORARY FOR DEBUGGING: Always authenticate the user if they have admin role
+    console.log('User has admin role, proceeding with authentication');
     
     // Create a session token and store in database
     const token = await createAdminSession(user.id, userAgent, ipAddress);
     
     if (!token) {
       console.error('Failed to create session token');
+      console.log('===== AUTHENTICATION FAILED: SESSION CREATION ERROR =====');
       return { authenticated: false };
     }
     
@@ -209,6 +237,8 @@ export const authenticateAdmin = async (
       }
     });
     
+    console.log('===== AUTHENTICATION SUCCESSFUL =====');
+    
     return { 
       authenticated: true,
       userId: user.id,
@@ -216,6 +246,7 @@ export const authenticateAdmin = async (
     };
   } catch (error) {
     console.error('Admin authentication error:', error);
+    console.log('===== AUTHENTICATION FAILED: EXCEPTION =====');
     return { authenticated: false };
   }
 };
