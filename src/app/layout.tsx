@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import Analytics from "@/components/Analytics"; // Changed from named import to default import
 import AnalyticsPageTracker from "@/components/AnalyticsPageTracker";
 import { Toaster } from "@/components/ui/toaster";
+import AuthProvider from "@/components/auth/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -143,18 +144,21 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <Header />
-        
-        {/* Suspense boundary for client component that uses useSearchParams */}
-        <Suspense fallback={null}>
-          <AnalyticsPageTracker 
-            googleAnalyticsId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
-          />
-        </Suspense>
-        
-        {children}
-        <Footer />
-        <Toaster />
+        {/* Wrap the entire app with AuthProvider for NextAuth */}
+        <AuthProvider>
+          <Header />
+          
+          {/* Suspense boundary for client component that uses useSearchParams */}
+          <Suspense fallback={null}>
+            <AnalyticsPageTracker 
+              googleAnalyticsId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+            />
+          </Suspense>
+          
+          {children}
+          <Footer />
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
