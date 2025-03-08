@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, ShieldAlert, KeyRound, AlertCircle } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, AlertCircle, Bug } from 'lucide-react';
 import Image from 'next/image';
 
 export default function AdminLogin() {
@@ -16,6 +16,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,8 +29,10 @@ export default function AdminLogin() {
   useEffect(() => {
     const checkSession = async () => {
       try {
+        console.log("Checking if already authenticated");
         const response = await fetch('/api/admin/auth');
         const data = await response.json();
+        console.log("Auth check result:", data);
         
         if (data.authenticated) {
           // If already authenticated, redirect to the callback URL
@@ -71,6 +74,7 @@ export default function AdminLogin() {
     
     // Reset any previous errors
     setError(null);
+    setDebugInfo(null);
     
     // Validate form
     if (!email.trim()) {
@@ -84,6 +88,7 @@ export default function AdminLogin() {
     }
     
     setLoading(true);
+    console.log(`Attempting login with email: ${email}`);
     
     try {
       // First ensure no credentials are being sent via URL params
@@ -104,8 +109,16 @@ export default function AdminLogin() {
       
       const data = await response.json();
       
+      // Log the response for debugging
+      console.log("Auth API response:", { status: response.status, data });
+      setDebugInfo({ status: response.status, data });
+      
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        // Enhanced error handling
+        const errorMessage = data.error || 'Authentication failed';
+        const debugDetails = data.debug || data.details || 'No details available';
+        console.error(`Auth error (${response.status}): ${errorMessage}`, debugDetails);
+        throw new Error(errorMessage);
       }
       
       // Log debug information
@@ -114,11 +127,13 @@ export default function AdminLogin() {
       // Store token in localStorage for persistence
       if (data.token) {
         localStorage.setItem('admin_auth_token', data.token);
+        console.log("Saved auth token to localStorage");
       }
       
       // Store user data in localStorage
       if (data.user) {
         localStorage.setItem('admin_auth_user', JSON.stringify(data.user));
+        console.log("Saved user data to localStorage");
       }
       
       // If authentication successful, show success message and redirect
@@ -141,20 +156,6 @@ export default function AdminLogin() {
     } finally {
       setLoading(false);
     }
-  };
-  
-  // Handle demo login
-  const handleDemoLogin = async () => {
-    setEmail('demo@example.com');
-    setPassword('demo123');
-    
-    // Wait for state to update, then submit the form
-    // Note: This is not optimal, but works for demo purposes
-    setTimeout(() => {
-      document.getElementById('login-form')?.dispatchEvent(
-        new Event('submit', { cancelable: true, bubbles: true })
-      );
-    }, 100);
   };
   
   // Show loading state while checking session
@@ -230,6 +231,18 @@ export default function AdminLogin() {
                   </div>
                 )}
                 
+                {debugInfo && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded text-xs">
+                    <div className="flex items-center mb-1">
+                      <Bug className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="font-medium">Debug Info</span>
+                    </div>
+                    <pre className="overflow-auto max-h-32 text-xs">
+                      {JSON.stringify(debugInfo, null, 2)}
+                    </pre>
+                  </div>
+                )}
+                
                 <Button type="submit" disabled={loading} className="mt-2">
                   {loading ? (
                     <>
@@ -240,18 +253,6 @@ export default function AdminLogin() {
                     'Sign In'
                   )}
                 </Button>
-                
-                {process.env.NODE_ENV !== 'production' && (
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleDemoLogin} 
-                    disabled={loading} 
-                    className="mt-2"
-                  >
-                    Demo Login
-                  </Button>
-                )}
                 
                 <div className="mt-4 bg-muted/50 border border-muted rounded px-4 py-3">
                   <div className="flex items-start">
