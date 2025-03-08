@@ -3,8 +3,9 @@ import { PrismaClient } from '@prisma/client';
 
 // Define the Role type based on the main application's Role type
 export interface Role {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
+  _id?: string; // MongoDB might use this format
 }
 
 // Initialize Prisma client
@@ -24,50 +25,69 @@ const logAuthAttempt = (email: string, message: string) => {
 };
 
 /**
- * Parse roles from any format to a standard Role[] array
+ * Parse roles from MongoDB format to a standard Role[] array
  */
 const parseRoles = (rolesData: any): Role[] => {
   try {
     console.log('Parsing roles, raw data:', JSON.stringify(rolesData));
     
-    if (!rolesData) return [];
+    // If no data, return empty array
+    if (!rolesData) {
+      console.log('No roles data provided');
+      return [];
+    }
     
-    // If it's already an array, process each item
+    // If already an array, ensure each item is properly formatted
     if (Array.isArray(rolesData)) {
-      console.log('Roles data is an array with length:', rolesData.length);
-      return rolesData.map(role => {
-        // If the role is a string, try to parse it as JSON
+      console.log(`Roles data is an array with ${rolesData.length} items`);
+      
+      // Map each role to ensure it has the correct structure
+      const parsedRoles = rolesData.map(role => {
+        // If role is a string, attempt to parse it
         if (typeof role === 'string') {
           try {
             return JSON.parse(role);
           } catch (e) {
-            // If parsing fails, just return null (will be filtered out)
-            return null;
+            console.log(`Failed to parse role string: ${role}`);
+            return { name: role }; // Treat the string as a role name
           }
         }
-        // If the role is already an object, return it as is
-        return role;
+        
+        // If role is already an object, use it directly
+        if (typeof role === 'object' && role !== null) {
+          return role;
+        }
+        
+        return null;
       }).filter(role => role !== null);
+      
+      console.log(`Parsed ${parsedRoles.length} roles:`, JSON.stringify(parsedRoles));
+      return parsedRoles;
     }
     
-    // If it's a string, try to parse it as a JSON array
+    // If it's a string, try to parse it as JSON
     if (typeof rolesData === 'string') {
-      console.log('Roles data is a string:', rolesData);
+      console.log('Roles data is a string, attempting to parse');
       try {
         const parsed = JSON.parse(rolesData);
-        return Array.isArray(parsed) ? parsed : [];
+        if (Array.isArray(parsed)) {
+          return parsed;
+        } else {
+          return [parsed]; // Single role object
+        }
       } catch (e) {
-        return [];
+        console.log(`Failed to parse roles string: ${rolesData}`);
+        return [{ name: rolesData }]; // Treat the string as a role name
       }
     }
     
-    // If it's an object, wrap it in an array
+    // If it's a single object, wrap it in an array
     if (typeof rolesData === 'object' && rolesData !== null) {
-      console.log('Roles data is an object');
+      console.log('Roles data is a single object');
       return [rolesData];
     }
     
-    // Default case
+    console.log('Could not parse roles data, returning empty array');
     return [];
   } catch (error) {
     console.error('Error parsing roles:', error);
@@ -82,24 +102,17 @@ const hasAdminRole = (roles: any[]): boolean => {
   try {
     console.log('Checking admin role for roles:', JSON.stringify(roles));
     
+    // Direct check for the exact structure we saw in the data
+    // Based on the data shared: name: "admin" or name: "user"
     const hasAdmin = roles.some(role => {
-      // For flexibility, check several possible structures
-      if (typeof role === 'object' && role !== null) {
-        // Check for {name: 'admin'} structure
+      if (role && typeof role === 'object') {
+        // Check for name property with value 'admin'
         if (role.name === 'admin' || role.name === 'super-admin') {
           console.log(`Found admin role by name: ${role.name}`);
           return true;
         }
-        
-        // Check for {role: 'admin'} structure
-        if (role.role === 'admin' || role.role === 'super-admin') {
-          console.log(`Found admin role by role property: ${role.role}`);
-          return true;
-        }
-      }
-      
-      // Check for string 'admin'
-      if (typeof role === 'string') {
+      } else if (typeof role === 'string') {
+        // If role is somehow a string
         if (role === 'admin' || role === 'super-admin') {
           console.log(`Found admin role by string value: ${role}`);
           return true;
@@ -202,8 +215,24 @@ export const authenticateAdmin = async (
     console.log(`User name: ${user.name}`);
     console.log(`User roles data:`, JSON.stringify(user.roles));
     
+    // Modify for MongoDB specific handling - ensure the roles are properly extracted
+    let userRoles = user.roles;
+    if (userRoles) {
+      if (Array.isArray(userRoles)) {
+        // Great, we already have an array
+        console.log('User roles is already an array with length:', userRoles.length);
+      } else if (typeof userRoles === 'object') {
+        // Handle case where roles might be embedded in another property
+        console.log('User roles is an object, checking for nested roles');
+        if (userRoles.roles && Array.isArray(userRoles.roles)) {
+          userRoles = userRoles.roles;
+          console.log('Found nested roles array with length:', userRoles.length);
+        }
+      }
+    }
+    
     // Parse the roles data
-    const roles = parseRoles(user.roles);
+    const roles = parseRoles(userRoles);
     console.log(`Parsed roles:`, JSON.stringify(roles, null, 2));
     
     // Check if the user has admin role
