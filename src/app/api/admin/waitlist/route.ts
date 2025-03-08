@@ -1,129 +1,167 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { waitlistService } from '@/lib/services/waitlist-service';
-
-// Helper for authentication - basic implementation for now
-// In a real app, you would use a more robust auth system
-const isAuthenticated = async (req: NextRequest): Promise<boolean> => {
-  // Simple API key check (in production, use a proper auth system)
-  const apiKey = req.headers.get('x-api-key');
-  const validApiKey = process.env.ADMIN_API_KEY;
-  
-  return apiKey === validApiKey;
-};
+import { getServerSession } from 'next-auth/next';
+import { authOptions, isAdmin } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 /**
- * GET /api/admin/waitlist - Get all waitlist entries (admin only)
+ * Retrieves waitlist entries for admin use
+ * This route is protected by authentication middleware
  */
 export async function GET(req: NextRequest) {
-  // Check authentication
-  if (!await isAuthenticated(req)) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
-  }
-
   try {
-    const entries = await waitlistService.getAllEntries();
-    const stats = await waitlistService.getStats();
+    // Get the authenticated session
+    const session = await getServerSession(authOptions);
+
+    // Check if user is authenticated and has admin role
+    if (!session || !isAdmin(session.user)) {
+      return NextResponse.json(
+        { error: 'Unauthorized access' },
+        { status: 403 }
+      );
+    }
+
+    // Get query parameters
+    const searchParams = req.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const status = searchParams.get('status') || undefined;
+    const search = searchParams.get('search') || undefined;
+    
+    // Calculate skip for pagination
+    const skip = (page - 1) * limit;
+    
+    // Build the filter
+    const filter: any = {};
+    
+    // Add status filter if provided
+    if (status) {
+      filter.status = status;
+    }
+    
+    // Add search filter if provided
+    if (search) {
+      filter.OR = [
+        { email: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    
+    // Get waitlist entries with pagination
+    const waitlistEntries = await prisma.waitlistEntry.findMany({
+      where: filter,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+      skip,
+    });
+    
+    // Get total count for pagination
+    const totalCount = await prisma.waitlistEntry.count({
+      where: filter,
+    });
     
     return NextResponse.json({
-      success: true,
-      entries,
-      stats
+      entries: waitlistEntries,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      },
     });
   } catch (error) {
-    console.error('Error fetching waitlist entries:', error);
+    console.error('Error in waitlist admin API:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch waitlist entries' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
 /**
- * PATCH /api/admin/waitlist/:id - Update a waitlist entry (admin only)
+ * Update a waitlist entry
  */
-export async function PATCH(req: NextRequest) {
-  // Check authentication
-  if (!await isAuthenticated(req)) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
-  }
-
+export async function PUT(req: NextRequest) {
   try {
-    const { id, ...updates } = await req.json();
+    // Get the authenticated session
+    const session = await getServerSession(authOptions);
+
+    // Check if user is authenticated and has admin role
+    if (!session || !isAdmin(session.user)) {
+      return NextResponse.json(
+        { error: 'Unauthorized access' },
+        { status: 403 }
+      );
+    }
+
+    // Parse request body
+    const body = await req.json();
+    const { id, status, notes } = body;
     
     if (!id) {
       return NextResponse.json(
-        { error: 'Entry ID is required' },
+        { error: 'Missing waitlist entry ID' },
         { status: 400 }
       );
     }
     
-    const success = await waitlistService.updateEntry(id, updates);
-    
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to update entry or entry not found' },
-        { status: 404 }
-      );
-    }
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Entry updated successfully'
+    // Update the waitlist entry
+    const updatedEntry = await prisma.waitlistEntry.update({
+      where: { id },
+      data: {
+        status: status || undefined,
+        notes: notes || undefined,
+        updatedAt: new Date(),
+      },
     });
+    
+    return NextResponse.json(updatedEntry);
   } catch (error) {
     console.error('Error updating waitlist entry:', error);
     return NextResponse.json(
-      { error: 'Failed to update waitlist entry' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
 /**
- * DELETE /api/admin/waitlist/:id - Delete a waitlist entry (admin only)
+ * Delete a waitlist entry
  */
 export async function DELETE(req: NextRequest) {
-  // Check authentication
-  if (!await isAuthenticated(req)) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
-  }
-
   try {
-    const { id } = await req.json();
+    // Get the authenticated session
+    const session = await getServerSession(authOptions);
+
+    // Check if user is authenticated and has admin role
+    if (!session || !isAdmin(session.user)) {
+      return NextResponse.json(
+        { error: 'Unauthorized access' },
+        { status: 403 }
+      );
+    }
+
+    // Get the waitlist entry ID from the query string
+    const id = req.nextUrl.searchParams.get('id');
     
     if (!id) {
       return NextResponse.json(
-        { error: 'Entry ID is required' },
+        { error: 'Missing waitlist entry ID' },
         { status: 400 }
       );
     }
     
-    const success = await waitlistService.deleteEntry(id);
-    
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to delete entry or entry not found' },
-        { status: 404 }
-      );
-    }
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Entry deleted successfully'
+    // Delete the waitlist entry
+    await prisma.waitlistEntry.delete({
+      where: { id },
     });
+    
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting waitlist entry:', error);
     return NextResponse.json(
-      { error: 'Failed to delete waitlist entry' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
