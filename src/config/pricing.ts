@@ -16,7 +16,7 @@ export interface PricingTier {
 }
 
 export const pricingFeatures = {
-  unlimitedSubscriptions: {
+  limitedSubscriptions: {
     name: 'Up to 5 subscriptions',
     description: 'Track your most important subscriptions',
     included: true
@@ -31,7 +31,7 @@ export const pricingFeatures = {
     description: 'See your monthly spending',
     included: true
   },
-  familySharing: {
+  unlimitedSubscriptions: {
     name: 'Unlimited subscriptions',
     description: 'Track as many subscriptions as you want',
     included: false
@@ -60,10 +60,10 @@ export const pricingTiers: PricingTier[] = [
     description: 'Perfect for getting started',
     price: 0,
     features: [
-      pricingFeatures.unlimitedSubscriptions,
+      pricingFeatures.limitedSubscriptions,
       pricingFeatures.emailReminders,
       pricingFeatures.spendingAnalytics,
-      { ...pricingFeatures.familySharing, included: false },
+      { ...pricingFeatures.unlimitedSubscriptions, included: false },
       { ...pricingFeatures.customCategories, included: false },
       { ...pricingFeatures.budgetAlerts, included: false },
       { ...pricingFeatures.prioritySupport, included: false }
@@ -78,10 +78,9 @@ export const pricingTiers: PricingTier[] = [
     price: 9.99,
     popular: true,
     features: [
-      { ...pricingFeatures.unlimitedSubscriptions, name: 'Unlimited subscriptions', description: 'Track as many subscriptions as you want', included: true },
+      { ...pricingFeatures.unlimitedSubscriptions, included: true },
       { ...pricingFeatures.emailReminders, name: 'Advanced notifications', description: 'Email, SMS, and custom reminders', included: true },
       { ...pricingFeatures.spendingAnalytics, name: 'Monthly insights', description: 'See your spending trends', included: true },
-      { ...pricingFeatures.familySharing, included: true },
       { ...pricingFeatures.customCategories, included: true },
       { ...pricingFeatures.budgetAlerts, included: true },
       { ...pricingFeatures.prioritySupport, included: true }
