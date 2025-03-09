@@ -5,9 +5,30 @@ import { CustomUser, Role, AuthResult } from '@/types/auth';
 
 // Helper function to serialize user data
 export function serializeUser(user: any): CustomUser {
-  const roles = typeof user.roles === 'string' 
-    ? JSON.parse(user.roles) 
-    : (user.roles as Role[] || []);
+  console.log('[AUTH] Serializing user:', { 
+    id: user.id, 
+    email: user.email, 
+    roles: typeof user.roles === 'string' ? user.roles : JSON.stringify(user.roles) 
+  });
+  
+  let roles: Role[] = [];
+  
+  try {
+    if (typeof user.roles === 'string') {
+      roles = JSON.parse(user.roles);
+    } else if (Array.isArray(user.roles)) {
+      roles = user.roles;
+    } else if (user.roles && typeof user.roles === 'object') {
+      // Handle case where roles might already be parsed as an object
+      roles = [user.roles];
+    }
+  } catch (error) {
+    console.error('[AUTH] Error parsing roles:', error);
+    console.error('[AUTH] Original roles value:', user.roles);
+    roles = [];
+  }
+  
+  console.log('[AUTH] Parsed roles:', roles);
     
   return {
     id: user.id,
@@ -17,7 +38,7 @@ export function serializeUser(user: any): CustomUser {
     emailVerified: user.emailVerified,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-    failedLoginAttempts: user.failedLoginAttempts || 0  // Add the missing property with a default value
+    failedLoginAttempts: user.failedLoginAttempts || 0
   };
 }
 
@@ -26,13 +47,17 @@ export async function authenticateUser(
   email: string,
   password: string
 ): Promise<AuthResult> {
+  console.log('[AUTH] Authenticating user:', email);
+  
   try {
     // Find user by email
+    console.log('[AUTH] Looking up user in database');
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() }
     });
     
     if (!user) {
+      console.log('[AUTH] User not found');
       return {
         success: false,
         error: {
@@ -41,9 +66,20 @@ export async function authenticateUser(
         }
       };
     }
+    
+    console.log('[AUTH] User found:', { 
+      id: user.id, 
+      email: user.email,
+      emailVerified: user.emailVerified,
+      hasPasswordHash: !!user.hashedPassword,
+      passwordHashLength: user.hashedPassword.length
+    });
 
     // Verify password
+    console.log('[AUTH] Verifying password');
     const isValid = await bcrypt.compare(password, user.hashedPassword);
+    console.log('[AUTH] Password verification result:', isValid);
+    
     if (!isValid) {
       return {
         success: false,
@@ -54,9 +90,19 @@ export async function authenticateUser(
       };
     }
     
+    // Check if email is verified
+    if (user.emailVerified === false) {
+      console.log('[AUTH] User email is not verified, but proceeding with authentication');
+      // Note: We're continuing the authentication process even if email is not verified
+      // If you want to enforce email verification, you could return an error here
+    }
+    
+    const serializedUser = serializeUser(user);
+    console.log('[AUTH] Authentication successful, returning user');
+    
     return {
       success: true,
-      data: serializeUser(user)
+      data: serializedUser
     };
   } catch (error) {
     console.error('[AUTH] Authentication error:', error);
