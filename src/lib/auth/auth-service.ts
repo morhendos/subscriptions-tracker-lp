@@ -103,7 +103,8 @@ export async function registerUser(
         email: email.toLowerCase(),
         name,
         hashedPassword,
-        roles: roles as unknown as Prisma.JsonValue,
+        // Fix: Cast to Prisma.InputJsonValue instead of JsonValue
+        roles: JSON.stringify(roles) as Prisma.InputJsonValue,
         emailVerified: false,
         failedLoginAttempts: 0  // Initialize with 0 failed attempts
       }
