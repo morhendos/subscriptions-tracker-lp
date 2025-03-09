@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import LogoutButton from './LogoutButton';
+import { Role } from '@/types/auth';
 
 export default function UserProfile() {
   const { data: session, status } = useSession();
@@ -23,7 +24,14 @@ export default function UserProfile() {
   }
 
   const userRoles = session.user.roles || [];
-  const isAdmin = userRoles.some(role => role.name === 'admin' || role === 'admin');
+  
+  // Type-safe way to check for admin role
+  const isAdmin = userRoles.some((role: Role | string) => {
+    if (typeof role === 'string') {
+      return role === 'admin';
+    }
+    return role.name === 'admin';
+  });
   
   return (
     <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 p-3 bg-gray-900 rounded-lg shadow-md border border-gray-800">
