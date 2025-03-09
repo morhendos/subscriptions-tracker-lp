@@ -10,6 +10,8 @@
     "lint": "next lint",
     "tree": "node scripts/tree.js",
     "create-admin": "node scripts/create-admin.js",
+    "verify-admin": "node scripts/verify-admin.js",
+    "test-auth": "node scripts/test-auth.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {
