@@ -38,17 +38,20 @@ import { useToast } from '@/components/ui/use-toast';
 // Admin API key should be stored in environment variables in production
 const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY || 'admin-secret-key';
 
+// Initialize default stats to avoid 'undefined' errors
+const DEFAULT_STATS = {
+  total: 0,
+  contacted: 0,
+  converted: 0,
+  lastWeek: 0
+};
+
 export default function WaitlistAdmin() {
   const [entries, setEntries] = useState<WaitlistEntryWithId[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [stats, setStats] = useState({
-    total: 0,
-    contacted: 0,
-    converted: 0,
-    lastWeek: 0
-  });
+  const [stats, setStats] = useState(DEFAULT_STATS);
   
   const router = useRouter();
   const { toast } = useToast();
@@ -58,6 +61,7 @@ export default function WaitlistAdmin() {
     const fetchEntries = async () => {
       try {
         setLoading(true);
+        setError(null);
         
         // Use the actual API endpoint to fetch waitlist data
         const response = await fetch('/api/admin/waitlist', {
@@ -65,15 +69,49 @@ export default function WaitlistAdmin() {
         });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch waitlist entries');
+          throw new Error(`Failed to fetch waitlist entries: ${response.status} ${response.statusText}`);
         }
         
         const data = await response.json();
-        setEntries(data.entries);
-        setStats(data.stats);
+        
+        // Ensure we have both entries and stats in the response
+        if (!data || !data.entries) {
+          throw new Error('Invalid response format: missing entries');
+        }
+        
+        setEntries(data.entries || []);
+        
+        // If stats are present in the response, use them, otherwise use defaults
+        if (data.stats) {
+          setStats({
+            total: data.stats.total || 0,
+            contacted: data.stats.contacted || 0,
+            converted: data.stats.converted || 0,
+            lastWeek: data.stats.lastWeek || 0
+          });
+        } else {
+          // Calculate basic stats from entries if not provided by API
+          const total = data.entries.length;
+          const contacted = data.entries.filter((entry: any) => entry.contacted).length;
+          const converted = data.entries.filter((entry: any) => entry.convertedToCustomer).length;
+          
+          // Get last week stats
+          const lastWeek = new Date();
+          lastWeek.setDate(lastWeek.getDate() - 7);
+          const lastWeekCount = data.entries.filter((entry: any) => 
+            new Date(entry.createdAt) >= lastWeek
+          ).length;
+          
+          setStats({
+            total,
+            contacted,
+            converted,
+            lastWeek: lastWeekCount
+          });
+        }
       } catch (err) {
         console.error('Failed to load waitlist entries:', err);
-        setError('Failed to load waitlist entries');
+        setError(err instanceof Error ? err.message : 'Failed to load waitlist entries');
         
         toast({
           title: 'Error',
@@ -83,12 +121,7 @@ export default function WaitlistAdmin() {
         
         // Fallback to empty data
         setEntries([]);
-        setStats({
-          total: 0,
-          contacted: 0,
-          converted: 0,
-          lastWeek: 0
-        });
+        setStats(DEFAULT_STATS);
       } finally {
         setLoading(false);
       }
@@ -229,7 +262,7 @@ export default function WaitlistAdmin() {
     
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ...rows.map(row => row.map(cell => `\"${String(cell).replace(/\"/g, '\"\"')}\"`).join(','))
     ].join('\n');
     
     // Create download
@@ -258,7 +291,7 @@ export default function WaitlistAdmin() {
   };
   
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className="container mx-auto py-6 px-4"> {/* Changed from py-10 to py-6 for consistency */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Waitlist Management</h1>
@@ -269,6 +302,7 @@ export default function WaitlistAdmin() {
         </Button>
       </div>
       
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">

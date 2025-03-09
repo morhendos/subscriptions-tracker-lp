@@ -2,15 +2,10 @@ subscription-tracker/
 ├── ANALYTICS.md
 ├── CHANGELOG.md
 ├── README.md
-├── app
-│   ├── admin
-│   │   └── waitlist
-│   └── api
-│       └── admin
-│           └── waitlist
 ├── bun.lockb
 ├── components.json
 ├── docs
+│   ├── AUTH.md
 │   ├── COMPONENTS.md
 │   ├── CONTRIBUTING.md
 │   ├── ROADMAP.md
@@ -31,6 +26,7 @@ subscription-tracker/
 │   ├── og-image.png
 │   └── placeholder.svg
 ├── scripts
+│   ├── create-admin.js
 │   └── tree.js
 ├── src
 │   ├── App.css
@@ -47,12 +43,23 @@ subscription-tracker/
 │   │   │   ├── admin
 │   │   │   │   └── waitlist
 │   │   │   │       └── route.ts
+│   │   │   ├── auth
+│   │   │   │   └── [...nextauth]
+│   │   │   │       └── route.ts
 │   │   │   ├── test
 │   │   │   │   └── route.ts
 │   │   │   └── waitlist
 │   │   │       ├── route.ts
 │   │   │       └── stats
 │   │   │           └── route.ts
+│   │   ├── auth
+│   │   │   ├── error
+│   │   │   │   └── page.tsx
+│   │   │   ├── login
+│   │   │   │   └── page.tsx
+│   │   │   └── signout
+│   │   │       └── page.tsx
+│   │   ├── auth-actions.ts
 │   │   ├── blog
 │   │   │   ├── [slug]
 │   │   │   │   ├── not-found.tsx
@@ -105,6 +112,11 @@ subscription-tracker/
 │   │   ├── TestimonialCard.tsx
 │   │   ├── Testimonials.tsx
 │   │   ├── WaitlistForm.tsx
+│   │   ├── auth
+│   │   │   ├── AuthProvider.tsx
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── LogoutButton.tsx
+│   │   │   └── UserProfile.tsx
 │   │   └── ui
 │   │       ├── accordion.tsx
 │   │       ├── alert-dialog.tsx
@@ -170,8 +182,15 @@ subscription-tracker/
 │   │   └── use-toast.ts
 │   ├── index.css
 │   ├── lib
+│   │   ├── auth
+│   │   │   ├── auth-options.ts
+│   │   │   ├── auth-service.ts
+│   │   │   ├── config.ts
+│   │   │   ├── index.ts
+│   │   │   └── validation.ts
 │   │   ├── blog.ts
 │   │   ├── database.ts
+│   │   ├── prisma.ts
 │   │   ├── schema
 │   │   │   └── index.ts
 │   │   ├── services
@@ -180,7 +199,9 @@ subscription-tracker/
 │   │   └── validations
 │   │       └── waitlist-schema.ts
 │   ├── main.tsx
+│   ├── middleware.ts
 │   └── types
+│       ├── auth.ts
 │       ├── blog.ts
 │       └── waitlist.ts
 ├── tailwind.config.ts

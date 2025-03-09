@@ -25,3 +25,18 @@ model WaitlistEntry {
   tags        String[]
   metadata    Json?
 }
+
+model User {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  email             String    @unique
+  name              String
+  hashedPassword    String
+  roles             Json      // Array of role objects as JSON
+  emailVerified     Boolean   @default(false)
+  failedLoginAttempts Int     @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Map to existing users collection in the subscriptions database
+  @@map("users")
+}
