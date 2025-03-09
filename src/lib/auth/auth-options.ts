@@ -20,7 +20,11 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials, req) {
         try {
-          console.log('[AUTH] Authorizing user with credentials')
+          console.log('[AUTH] Authorizing user with credentials', { 
+            email: credentials?.email,
+            hasPassword: !!credentials?.password,
+            environment: process.env.NODE_ENV
+          });
           
           if (!credentials?.email || !credentials?.password) {
             console.log('[AUTH] Missing email or password')
@@ -42,12 +46,22 @@ export const authOptions: AuthOptions = {
             credentials.password
           )
 
-          console.log(`[AUTH] Authentication result: ${result.success ? 'success' : 'failed'}`)
+          console.log(`[AUTH] Authentication result: ${result.success ? 'success' : 'failed'}`, {
+            success: result.success,
+            error: result.error,
+            userAvailable: !!result.data
+          });
 
           if (!result.success || !result.data) {
             console.log('[AUTH] Authentication failed:', result.error)
             return null
           }
+
+          console.log('[AUTH] User authenticated successfully', {
+            id: result.data.id,
+            email: result.data.email,
+            roles: result.data.roles
+          });
 
           // Return user object
           return {
@@ -66,22 +80,43 @@ export const authOptions: AuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
+      console.log('[AUTH:JWT] Processing JWT', { 
+        hasUser: !!user, 
+        tokenBefore: { ...token, sub: token.sub } 
+      });
+      
       if (user) {
         const customUser = user as CustomUser
         token.id = customUser.id
         token.email = customUser.email
         token.name = customUser.name
         token.roles = customUser.roles || []
+        
+        console.log('[AUTH:JWT] Updated token with user data', {
+          id: token.id,
+          email: token.email,
+          roles: token.roles
+        });
       }
       return token
     },
 
     async session({ session, token }) {
+      console.log('[AUTH:SESSION] Processing session', { 
+        hasUser: !!session.user,
+        tokenId: token.id
+      });
+      
       if (session.user) {
         session.user.id = token.id
         session.user.email = token.email
         session.user.name = token.name
         session.user.roles = token.roles || []
+        
+        console.log('[AUTH:SESSION] Updated session with token data', {
+          id: session.user.id,
+          email: session.user.email
+        });
       }
       return session
     },
@@ -124,6 +159,6 @@ export const authOptions: AuthOptions = {
     },
   },
 
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // Enable debug for both development and production temporarily
   secret: NEXTAUTH_SECRET,
 }
