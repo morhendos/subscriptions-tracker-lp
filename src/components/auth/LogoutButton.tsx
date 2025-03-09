@@ -28,13 +28,13 @@ export default function LogoutButton({
       buttonStyle += ' bg-red-600 hover:bg-red-700 text-white';
       break;
     case 'outline':
-      buttonStyle += ' border border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 dark:hover:bg-opacity-20';
+      buttonStyle += ' border border-red-500 text-red-500 hover:bg-red-900 hover:bg-opacity-20';
       break;
     case 'ghost':
-      buttonStyle += ' text-red-500 hover:bg-red-50 dark:hover:bg-red-900 dark:hover:bg-opacity-20';
+      buttonStyle += ' text-red-400 hover:bg-red-900 hover:bg-opacity-20';
       break;
     case 'link':
-      buttonStyle += ' text-red-500 hover:underline p-0';
+      buttonStyle += ' text-red-400 hover:underline p-0';
       break;
   }
   
