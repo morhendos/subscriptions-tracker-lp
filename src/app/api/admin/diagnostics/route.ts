@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
         hasConnectionString: !!process.env.DATABASE_URL,
         connectionTest: 'pending',
         userCount: 0,
-        collections: [],
         adminUser: null
       }
     };
@@ -61,14 +60,6 @@ export async function GET(request: NextRequest) {
       const userCount = await prisma.user.count();
       diagnostics.database.connectionTest = 'successful';
       diagnostics.database.userCount = userCount;
-
-      // Get collections info (safely)
-      try {
-        const collectionsData = await prisma.$queryRaw`SHOW COLLECTIONS`;
-        diagnostics.database.collections = collectionsData;
-      } catch (e) {
-        diagnostics.database.collections = ['Error fetching collections'];
-      }
 
       // Try to find admin user (safely masking sensitive data)
       const adminUser = await prisma.user.findFirst({
