@@ -65,10 +65,12 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
+// Fix: Only protect specific routes that need authentication
 export const config = {
   matcher: [
-    // Match all paths except for static assets, api routes that don't need auth, and next-auth routes
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    // Only match admin routes and API routes that need protection
+    '/admin/:path*',
+    '/api/admin/:path*',
+    '/auth/:path*'
   ],
 };
