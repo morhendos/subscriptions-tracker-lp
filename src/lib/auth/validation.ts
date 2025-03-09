@@ -20,7 +20,8 @@ export function validatePassword(password: string): boolean {
 }
 
 export function isValidRole(role: string): boolean {
-  return AUTH_CONFIG.ADMIN_ROLES.includes(role);
+  // Using type assertion to match the expected literal type
+  return AUTH_CONFIG.ADMIN_ROLES.includes(role as "admin");
 }
 
 export function hasRequiredRole(userRoles: string[], requiredRoles: string[]): boolean {
