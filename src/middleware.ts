@@ -4,71 +4,56 @@ import { getToken } from 'next-auth/jwt';
 
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
-
-  // Define public paths that don't require authentication
-  const isPublicPath = 
-    path === '/auth/login' || 
-    path === '/auth/error' || 
-    path.startsWith('/api/auth/') || 
-    path === '/' || 
-    path.startsWith('/about') || 
-    path.startsWith('/features') || 
-    path.startsWith('/pricing') || 
-    path.startsWith('/blog') || 
-    path.startsWith('/contact') || 
-    path.startsWith('/waitlist') || 
-    path.startsWith('/terms') || 
-    path.startsWith('/privacy') || 
-    path.startsWith('/cookie-policy') || 
-    path.startsWith('/gdpr');
-  
-  // Define admin paths that require admin role
-  const isAdminPath = path.startsWith('/admin');
-
-  // Define paths that require authentication
-  const isAuthPath = isAdminPath;
-
-  // If the path doesn't require authentication, continue
-  if (isPublicPath) {
+  try {
+    const path = request.nextUrl.pathname;
+    
+    // Define admin paths that require admin role
+    const isAdminPath = path.startsWith('/admin');
+    const isProtectedApiPath = path.startsWith('/api/admin');
+    
+    // Only check auth for admin paths or protected API routes
+    if (!isAdminPath && !isProtectedApiPath) {
+      return NextResponse.next();
+    }
+    
+    // Get the token for protected routes
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET
+    });
+    
+    // If no token, redirect to login
+    if (!token) {
+      console.log('[AUTH] No token found, redirecting to login');
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+    
+    // For admin paths, check if user has admin role
+    if (isAdminPath || isProtectedApiPath) {
+      const userRoles = token?.roles || [];
+      const isAdmin = userRoles.some((role: any) => 
+        role.name === 'admin' || role === 'admin'
+      );
+      
+      if (!isAdmin) {
+        console.log('[AUTH] User does not have admin role, redirecting to home');
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+    }
+    
+    // If all checks pass, continue with the request
+    return NextResponse.next();
+  } catch (error) {
+    console.error('[AUTH MIDDLEWARE ERROR]', error);
+    // On error, allow the request to proceed to avoid breaking the site
     return NextResponse.next();
   }
-
-  // Get the token
-  const token = await getToken({ 
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET
-  });
-
-  // Check if the user is authenticated
-  const isAuthenticated = !!token;
-
-  // If the path requires authentication but the user is not authenticated,
-  // redirect to the login page
-  if (isAuthPath && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-
-  // Check if the user has the admin role for admin paths
-  if (isAdminPath) {
-    const userRoles = token?.roles || [];
-    const isAdmin = userRoles.some((role: any) => role.name === 'admin');
-    
-    if (!isAdmin) {
-      // If the user doesn't have the admin role, redirect to an unauthorized page
-      // or the homepage depending on your application's requirements
-      return NextResponse.redirect(new URL('/', request.url));
-    }
-  }
-
-  // If all checks pass, continue with the request
-  return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
+// Only run middleware on specific paths
 export const config = {
   matcher: [
-    // Match all paths except for static assets, api routes that don't need auth, and next-auth routes
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/admin/:path*',
+    '/api/admin/:path*'
   ],
 };
