@@ -18,14 +18,19 @@ class WaitlistService {
   private async init(): Promise<Collection> {
     if (this.collection) return this.collection;
     
-    this.db = await connectToDatabase();
-    this.collection = this.db.collection(this.collectionName);
-    
-    // Create indexes if they don't exist
-    await this.collection.createIndex({ email: 1 }, { unique: true });
-    await this.collection.createIndex({ createdAt: -1 });
-    
-    return this.collection;
+    try {
+      this.db = await connectToDatabase();
+      this.collection = this.db.collection(this.collectionName);
+      
+      // Create indexes if they don't exist
+      await this.collection.createIndex({ email: 1 }, { unique: true });
+      await this.collection.createIndex({ createdAt: -1 });
+      
+      return this.collection;
+    } catch (error) {
+      console.error('Error initializing waitlist service:', error);
+      throw new Error('Failed to connect to database');
+    }
   }
 
   /**
@@ -34,14 +39,15 @@ class WaitlistService {
   private transformEntry(doc: any): WaitlistEntryWithId {
     return {
       id: doc._id.toString(),
-      name: doc.name,
-      email: doc.email,
-      createdAt: doc.createdAt,
-      source: doc.source,
+      name: doc.name || '',
+      email: doc.email || '',
+      createdAt: doc.createdAt || new Date(),
+      source: doc.source || 'unknown',
       interests: doc.interests || [],
       notes: doc.notes || '',
-      contacted: doc.contacted,
-      convertedToCustomer: doc.convertedToCustomer
+      // Ensure these are always booleans
+      contacted: Boolean(doc.contacted),
+      convertedToCustomer: Boolean(doc.convertedToCustomer)
     };
   }
 
@@ -109,7 +115,16 @@ class WaitlistService {
   async getEntry(id: string): Promise<WaitlistEntryWithId | null> {
     try {
       const collection = await this.init();
-      const entry = await collection.findOne({ _id: new ObjectId(id) });
+      let objectId;
+      
+      try {
+        objectId = new ObjectId(id);
+      } catch (error) {
+        console.error(`Invalid ObjectId format: ${id}`);
+        return null;
+      }
+      
+      const entry = await collection.findOne({ _id: objectId });
       
       if (!entry) return null;
       return this.transformEntry(entry);
@@ -125,8 +140,17 @@ class WaitlistService {
   async updateEntry(id: string, update: UpdateWaitlistEntryInput): Promise<boolean> {
     try {
       const collection = await this.init();
+      let objectId;
+      
+      try {
+        objectId = new ObjectId(id);
+      } catch (error) {
+        console.error(`Invalid ObjectId format: ${id}`);
+        return false;
+      }
+      
       const result = await collection.updateOne(
-        { _id: new ObjectId(id) },
+        { _id: objectId },
         { $set: update }
       );
       
@@ -143,7 +167,16 @@ class WaitlistService {
   async deleteEntry(id: string): Promise<boolean> {
     try {
       const collection = await this.init();
-      const result = await collection.deleteOne({ _id: new ObjectId(id) });
+      let objectId;
+      
+      try {
+        objectId = new ObjectId(id);
+      } catch (error) {
+        console.error(`Invalid ObjectId format: ${id}`);
+        return false;
+      }
+      
+      const result = await collection.deleteOne({ _id: objectId });
       
       return result.deletedCount > 0;
     } catch (error) {
@@ -180,7 +213,13 @@ class WaitlistService {
       };
     } catch (error) {
       console.error('Error getting waitlist stats:', error);
-      return { total: 0, contacted: 0, converted: 0, lastWeek: 0 };
+      // Return default values on error to avoid undefined issues in UI
+      return { 
+        total: 0, 
+        contacted: 0, 
+        converted: 0, 
+        lastWeek: 0 
+      };
     }
   }
 }
