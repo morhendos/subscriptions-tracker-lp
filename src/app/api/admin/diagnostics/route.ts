@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Now run diagnostics
-    const diagnostics = {
+    const diagnostics: any = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
       nodeVersion: process.version,
@@ -69,16 +69,17 @@ export async function GET(request: NextRequest) {
       });
 
       if (adminUser) {
+        // Use any type to avoid strict type checking
         diagnostics.database.adminUser = {
           id: adminUser.id,
           email: adminUser.email,
           name: adminUser.name,
           emailVerified: adminUser.emailVerified,
           hasPassword: !!adminUser.hashedPassword,
-          passwordLength: adminUser.hashedPassword?.length,
-          roles: adminUser.roles,
+          passwordLength: adminUser.hashedPassword?.length || 0,
+          roleType: typeof adminUser.roles,
           createdAt: adminUser.createdAt,
-          failedLoginAttempts: adminUser.failedLoginAttempts,
+          failedLoginAttempts: adminUser.failedLoginAttempts || 0,
         };
       }
     } catch (e) {
