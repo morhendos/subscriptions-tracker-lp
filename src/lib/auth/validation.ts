@@ -24,7 +24,7 @@ export function isValidRole(role: string): boolean {
   return AUTH_CONFIG.ADMIN_ROLES.includes(role as "admin");
 }
 
-export function hasRequiredRole(userRoles: string[], requiredRoles: string[]): boolean {
+export function hasRequiredRole(userRoles: string[], requiredRoles: readonly string[]): boolean {
   if (!userRoles || !requiredRoles) return false;
   return userRoles.some(role => requiredRoles.includes(role));
 }
