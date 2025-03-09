@@ -14,6 +14,7 @@ export default function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,14 +28,19 @@ export default function LoginForm() {
     
     // Clear error when user types
     if (error) setError(null);
+    if (debugInfo) setDebugInfo(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setDebugInfo(null);
 
     try {
+      // Log attempt
+      console.log(`Attempting to sign in with email: ${formData.email}`);
+      
       // Validate form data
       const validation = loginSchema.safeParse(formData);
       if (!validation.success) {
@@ -50,11 +56,26 @@ export default function LoginForm() {
         email: formData.email,
         password: formData.password,
       });
+      
+      console.log('Auth result:', result);
+      setDebugInfo(`Auth attempt result: ${JSON.stringify(result)}`);
 
       if (result?.error) {
-        setError(result.error === 'CredentialsSignin' 
-          ? 'Invalid email or password' 
-          : result.error);
+        let errorMessage: string;
+        
+        if (result.error === 'CredentialsSignin') {
+          errorMessage = 'Invalid email or password';
+        } else {
+          errorMessage = result.error;
+        }
+        
+        setError(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!result?.ok) {
+        setError('Authentication failed for unknown reason');
         setIsLoading(false);
         return;
       }
@@ -65,17 +86,25 @@ export default function LoginForm() {
     } catch (err) {
       console.error('Login error:', err);
       setError('An unexpected error occurred. Please try again.');
+      if (err instanceof Error) {
+        setDebugInfo(`Error: ${err.message}`);
+      }
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-slate-800 rounded-lg shadow-md border border-slate-700">
-      {/* Removed duplicate heading */}
-      
+    <div className="w-full max-w-md mx-auto p-6 bg-slate-800 rounded-lg shadow-md border border-slate-700">      
       {error && (
         <div className="mb-4 p-3 bg-red-900/50 border border-red-600 text-red-200 rounded">
           {error}
+        </div>
+      )}
+      
+      {debugInfo && process.env.NODE_ENV !== 'production' && (
+        <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-600 text-yellow-200 rounded text-xs">
+          <strong>Debug Info:</strong><br />
+          {debugInfo}
         </div>
       )}
       
