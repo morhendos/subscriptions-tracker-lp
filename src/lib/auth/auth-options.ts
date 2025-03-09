@@ -5,14 +5,35 @@ import { validateEmail, validatePassword, AuthError } from './validation'
 import { authenticateUser } from './auth-service'
 import { CustomUser } from '@/types/auth'
 
-if (!process.env.NEXTAUTH_SECRET) {
-  console.error('[NEXTAUTH] Missing NEXTAUTH_SECRET environment variable')
-  throw new Error('NEXTAUTH_SECRET must be set in environment variables')
+// In development, provide a default secret if environment variable is missing
+const isDevEnvironment = process.env.NODE_ENV === 'development' || 
+                         typeof window !== 'undefined'; // Also check if running in browser
+
+// Set default values for development
+let nextAuthSecret = process.env.NEXTAUTH_SECRET;
+let nextAuthUrl = process.env.NEXTAUTH_URL;
+
+// If we're in development and missing the secret, use a default
+if (isDevEnvironment && !nextAuthSecret) {
+  console.warn('[NEXTAUTH] Using fallback secret for development. DO NOT use in production!');
+  nextAuthSecret = 'development-secret-do-not-use-in-production';
 }
 
-if (!process.env.NEXTAUTH_URL && process.env.NODE_ENV === 'production') {
-  console.error('[NEXTAUTH] Missing NEXTAUTH_URL environment variable in production')
-  throw new Error('NEXTAUTH_URL must be set in production environment')
+// If we're in development and missing the URL, use a default
+if (isDevEnvironment && !nextAuthUrl) {
+  console.warn('[NEXTAUTH] Using default NEXTAUTH_URL for development');
+  nextAuthUrl = 'http://localhost:3000';
+}
+
+// Only throw errors in production
+if (!isDevEnvironment && !nextAuthSecret) {
+  console.error('[NEXTAUTH] Missing NEXTAUTH_SECRET environment variable');
+  throw new Error('NEXTAUTH_SECRET must be set in environment variables');
+}
+
+if (!isDevEnvironment && !nextAuthUrl) {
+  console.error('[NEXTAUTH] Missing NEXTAUTH_URL environment variable in production');
+  throw new Error('NEXTAUTH_URL must be set in production environment');
 }
 
 export const authOptions: AuthOptions = {
@@ -102,21 +123,21 @@ export const authOptions: AuthOptions = {
 
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'development' ? 'next-auth.session-token' : '__Secure-next-auth.session-token',
+      name: isDevEnvironment ? 'next-auth.session-token' : '__Secure-next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV !== 'development'
+        secure: !isDevEnvironment
       }
     },
     callbackUrl: {
-      name: process.env.NODE_ENV === 'development' ? 'next-auth.callback-url' : '__Secure-next-auth.callback-url',
+      name: isDevEnvironment ? 'next-auth.callback-url' : '__Secure-next-auth.callback-url',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV !== 'development'
+        secure: !isDevEnvironment
       }
     },
     csrfToken: {
@@ -125,11 +146,12 @@ export const authOptions: AuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV !== 'development'
+        secure: !isDevEnvironment
       }
     },
   },
 
-  debug: process.env.NODE_ENV === 'development',
-  secret: process.env.NEXTAUTH_SECRET,
+  debug: isDevEnvironment,
+  // Always provide a secret, even if it's a fallback for development
+  secret: nextAuthSecret,
 }
