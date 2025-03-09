@@ -4,7 +4,12 @@ import { AUTH_CONFIG } from './config'
 import { validateEmail, validatePassword, AuthError } from './validation'
 import { authenticateUser } from './auth-service'
 import { CustomUser } from '@/types/auth'
+import { loadEnvVars, ensureEnvVars } from '@/lib/env-utils'
 
+// Explicitly load environment variables first
+loadEnvVars();
+
+// Now check if they're available
 if (!process.env.NEXTAUTH_SECRET) {
   console.error('[NEXTAUTH] Missing NEXTAUTH_SECRET environment variable')
   throw new Error('NEXTAUTH_SECRET must be set in environment variables')
