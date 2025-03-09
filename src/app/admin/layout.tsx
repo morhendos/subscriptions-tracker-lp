@@ -33,9 +33,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
   
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
-        <div className="container flex h-16 items-center">
+    <div className="flex min-h-screen flex-col pt-16"> {/* Added pt-16 to account for the main header */}
+      <header className="sticky top-16 z-30 w-full border-b bg-background/95 backdrop-blur"> {/* Changed top-0 to top-16, z-40 to z-30 */}
+        <div className="container flex h-14 items-center"> {/* Reduced height from h-16 to h-14 */}
           <div className="mr-4 flex">
             <Link href="/admin" className="font-semibold">
               Admin Dashboard
