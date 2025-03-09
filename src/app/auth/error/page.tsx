@@ -43,11 +43,14 @@ export default function ErrorPage() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-900">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
-          <h1 className="text-3xl font-extrabold text-red-600 dark:text-red-500">Authentication Error</h1>
-          <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">{errorMessage}</p>
+          <Link href="/" className="inline-block mb-6 hover:opacity-80 transition-opacity">
+            <img src="/logo-st.svg" alt="Subscriptions Tracker" className="h-10 mx-auto" />
+          </Link>
+          <h1 className="text-3xl font-extrabold text-red-500">Authentication Error</h1>
+          <p className="mt-4 text-lg text-gray-300">{errorMessage}</p>
           <div className="mt-8 space-y-4">
             <Link 
               href="/auth/login"
@@ -57,7 +60,7 @@ export default function ErrorPage() {
             </Link>
             <Link 
               href="/"
-              className="block w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
+              className="block w-full py-2 px-4 border border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-200 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Return to Homepage
             </Link>
