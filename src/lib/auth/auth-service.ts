@@ -16,7 +16,8 @@ export function serializeUser(user: any): CustomUser {
     roles,
     emailVerified: user.emailVerified,
     createdAt: user.createdAt,
-    updatedAt: user.updatedAt
+    updatedAt: user.updatedAt,
+    failedLoginAttempts: user.failedLoginAttempts || 0  // Add the missing property with a default value
   };
 }
 
@@ -103,7 +104,8 @@ export async function registerUser(
         name,
         hashedPassword,
         roles: roles as unknown as Prisma.JsonValue,
-        emailVerified: false
+        emailVerified: false,
+        failedLoginAttempts: 0  // Initialize with 0 failed attempts
       }
     });
     
