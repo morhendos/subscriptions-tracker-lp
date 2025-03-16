@@ -9,34 +9,6 @@ import { CustomUser } from '@/types/auth'
 // can't directly access process.env values anyway on the client side
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || 'fallback-dev-secret-not-for-production';
 
-// Helper function to check if user has admin role
-const hasAdminRole = (user: any): boolean => {
-  if (!user || !user.roles) return false;
-  
-  try {
-    if (Array.isArray(user.roles)) {
-      return user.roles.some((role: any) => 
-        (typeof role === 'string' && role === 'admin') || 
-        (role && typeof role === 'object' && role.name === 'admin')
-      );
-    } else if (typeof user.roles === 'string') {
-      try {
-        const roles = JSON.parse(user.roles);
-        return Array.isArray(roles) && roles.some((role: any) => 
-          (typeof role === 'string' && role === 'admin') || 
-          (role && typeof role === 'object' && role.name === 'admin')
-        );
-      } catch (e) {
-        return false;
-      }
-    }
-  } catch (e) {
-    console.error('[AUTH] Error checking admin role:', e);
-  }
-  
-  return false;
-};
-
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -49,8 +21,8 @@ export const authOptions: AuthOptions = {
       async authorize(credentials, req) {
         try {
           console.log('[AUTH] Authorizing user with credentials', { 
-            emailProvided: !!credentials?.email,
-            passwordProvided: !!credentials?.password,
+            email: credentials?.email,
+            hasPassword: !!credentials?.password,
             environment: process.env.NODE_ENV
           });
           
@@ -69,7 +41,6 @@ export const authOptions: AuthOptions = {
             throw new AuthError('Password must be at least 8 characters', 'invalid_credentials')
           }
           
-          // We never log the actual credentials for security
           const result = await authenticateUser(
             credentials.email,
             credentials.password
@@ -77,36 +48,22 @@ export const authOptions: AuthOptions = {
 
           console.log(`[AUTH] Authentication result: ${result.success ? 'success' : 'failed'}`, {
             success: result.success,
-            hasError: !!result.error,
+            error: result.error,
             userAvailable: !!result.data
           });
 
           if (!result.success || !result.data) {
-            console.log('[AUTH] Authentication failed')
+            console.log('[AUTH] Authentication failed:', result.error)
             return null
-          }
-
-          // Check if this is an admin page and if the user has admin rights
-          const isAdminPage = req.headers?.referer?.includes('/admin');
-          const userHasAdminRole = result.data && hasAdminRole(result.data);
-          
-          console.log('[AUTH] Access control check:', {
-            isAdminPage,
-            userHasAdminRole
-          });
-          
-          // Prevent non-admin users from accessing admin pages
-          if (isAdminPage && !userHasAdminRole) {
-            console.log('[AUTH] Unauthorized access attempt to admin page');
-            return null;
           }
 
           console.log('[AUTH] User authenticated successfully', {
             id: result.data.id,
-            hasRoles: !!result.data.roles && result.data.roles.length > 0
+            email: result.data.email,
+            roles: result.data.roles
           });
 
-          // Return user object without sensitive data
+          // Return user object
           return {
             id: result.data.id,
             email: result.data.email,
@@ -125,7 +82,7 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       console.log('[AUTH:JWT] Processing JWT', { 
         hasUser: !!user, 
-        hasToken: !!token
+        tokenBefore: { ...token, sub: token.sub } 
       });
       
       if (user) {
@@ -136,8 +93,9 @@ export const authOptions: AuthOptions = {
         token.roles = customUser.roles || []
         
         console.log('[AUTH:JWT] Updated token with user data', {
-          hasUserId: !!token.id,
-          hasRoles: Array.isArray(token.roles) && token.roles.length > 0
+          id: token.id,
+          email: token.email,
+          roles: token.roles
         });
       }
       return token
@@ -146,7 +104,7 @@ export const authOptions: AuthOptions = {
     async session({ session, token }) {
       console.log('[AUTH:SESSION] Processing session', { 
         hasUser: !!session.user,
-        hasToken: !!token
+        tokenId: token.id
       });
       
       if (session.user) {
@@ -156,8 +114,8 @@ export const authOptions: AuthOptions = {
         session.user.roles = token.roles || []
         
         console.log('[AUTH:SESSION] Updated session with token data', {
-          hasUserId: !!session.user.id,
-          hasRoles: Array.isArray(session.user.roles) && session.user.roles.length > 0
+          id: session.user.id,
+          email: session.user.email
         });
       }
       return session
@@ -191,7 +149,7 @@ export const authOptions: AuthOptions = {
       }
     },
     csrfToken: {
-      name: 'next-auth.csrf-token',
+      name: process.env.NEXTAUTH_URL ? 'next-auth.csrf-token' : 'next-auth.csrf-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
@@ -201,6 +159,6 @@ export const authOptions: AuthOptions = {
     },
   },
 
-  debug: process.env.NODE_ENV === 'development', // Only enable debug in development
+  debug: true, // Enable debug for both development and production temporarily
   secret: NEXTAUTH_SECRET,
 }
