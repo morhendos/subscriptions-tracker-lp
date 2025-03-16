@@ -21,6 +21,8 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/terms') || 
     path.startsWith('/privacy') || 
     path.startsWith('/cookie-policy') || 
+    path.startsWith('/api/public-diagnostics') ||
+    path.startsWith('/api/auth-test') ||
     path.startsWith('/gdpr');
   
   // Define admin paths that require admin role
@@ -52,7 +54,28 @@ export async function middleware(request: NextRequest) {
   // Check if the user has the admin role for admin paths
   if (isAdminPath) {
     const userRoles = token?.roles || [];
-    const isAdmin = userRoles.some((role: any) => role.name === 'admin');
+    
+    // MORE ROBUST ADMIN CHECK - handles MongoDB ObjectId inconsistencies
+    const isAdmin = userRoles.some((role: any) => {
+      // Handle string roles (simple case)
+      if (typeof role === 'string') {
+        return role === 'admin';
+      }
+      
+      // Handle object roles (normal case)
+      if (typeof role === 'object' && role !== null) {
+        return role.name === 'admin';
+      }
+      
+      return false;
+    });
+    
+    console.log('[MIDDLEWARE] Admin check:', { 
+      hasRoles: userRoles.length > 0,
+      rolesType: typeof userRoles,
+      isAdmin,
+      userEmail: token?.email
+    });
     
     if (!isAdmin) {
       // If the user doesn't have the admin role, redirect to an unauthorized page
