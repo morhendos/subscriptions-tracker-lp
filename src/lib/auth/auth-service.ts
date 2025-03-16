@@ -3,32 +3,76 @@ import { prisma } from '../prisma';
 import { Prisma } from '@prisma/client';
 import { CustomUser, Role, AuthResult } from '@/types/auth';
 
-// Helper function to serialize user data
+// Helper function to normalize a role object to our standard format
+function normalizeRole(role: any): Role {
+  // If it's already a proper role object
+  if (typeof role === 'object' && role !== null && typeof role.name === 'string' && typeof role.id === 'string') {
+    return { 
+      id: role.id, 
+      name: role.name 
+    };
+  }
+  
+  // If it's a string (assume it's the role name)
+  if (typeof role === 'string') {
+    return { 
+      id: role === 'admin' ? '2' : '1', // Default IDs based on role name
+      name: role 
+    };
+  }
+  
+  // If it's an object but doesn't have the expected properties
+  if (typeof role === 'object' && role !== null) {
+    // Try to extract id and name, providing defaults if needed
+    const id = typeof role.id === 'string' ? role.id : 
+               typeof role._id === 'string' ? role._id : 
+               role.name === 'admin' ? '2' : '1';
+               
+    const name = typeof role.name === 'string' ? role.name : 'user';
+    
+    return { id, name };
+  }
+  
+  // Default case
+  return { id: '1', name: 'user' };
+}
+
+// Helper function to serialize user data - IMPROVED TO HANDLE MONGODB NUANCES
 export function serializeUser(user: any): CustomUser {
   console.log('[AUTH] Serializing user:', { 
     id: user.id, 
-    email: user.email, 
-    roles: typeof user.roles === 'string' ? user.roles : JSON.stringify(user.roles) 
+    email: user.email,
+    rolesType: typeof user.roles,
+    hasRoles: !!user.roles
   });
   
   let roles: Role[] = [];
   
   try {
+    // If roles is a string, try to parse it as JSON
     if (typeof user.roles === 'string') {
-      roles = JSON.parse(user.roles);
-    } else if (Array.isArray(user.roles)) {
-      roles = user.roles;
-    } else if (user.roles && typeof user.roles === 'object') {
-      // Handle case where roles might already be parsed as an object
-      roles = [user.roles];
+      const parsed = JSON.parse(user.roles);
+      if (Array.isArray(parsed)) {
+        roles = parsed.map(normalizeRole);
+      } else if (parsed && typeof parsed === 'object') {
+        roles = [normalizeRole(parsed)];
+      }
+    } 
+    // If roles is an array, map each item to a normalized role
+    else if (Array.isArray(user.roles)) {
+      roles = user.roles.map(normalizeRole);
+    } 
+    // If roles is an object but not an array, treat it as a single role
+    else if (user.roles && typeof user.roles === 'object') {
+      roles = [normalizeRole(user.roles)];
     }
   } catch (error) {
-    console.error('[AUTH] Error parsing roles:', error);
+    console.error('[AUTH] Error processing roles:', error);
     console.error('[AUTH] Original roles value:', user.roles);
     roles = [];
   }
   
-  console.log('[AUTH] Parsed roles:', roles);
+  console.log('[AUTH] Processed roles:', roles);
     
   return {
     id: user.id,
@@ -72,7 +116,8 @@ export async function authenticateUser(
       email: user.email,
       emailVerified: user.emailVerified,
       hasPasswordHash: !!user.hashedPassword,
-      passwordHashLength: user.hashedPassword.length
+      passwordHashLength: user.hashedPassword.length,
+      roleType: typeof user.roles
     });
 
     // Verify password
