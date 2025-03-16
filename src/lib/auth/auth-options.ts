@@ -9,6 +9,23 @@ import { CustomUser } from '@/types/auth'
 // can't directly access process.env values anyway on the client side
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || 'fallback-dev-secret-not-for-production';
 
+// DEBUG HELPER: logs object without circular references
+function safeLog(prefix: string, obj: any) {
+  const seen = new WeakSet();
+  const safeObj = JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]';
+      }
+      seen.add(value);
+    }
+    return value;
+  }, 2);
+  
+  console.log(`${prefix}: ${safeObj}`);
+  return obj; // For chaining
+}
+
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -20,6 +37,11 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials, req) {
         try {
+          console.log('[AUTH:DEBUG] ===== authorize() called =====');
+          console.log('[AUTH:DEBUG] Environment:', process.env.NODE_ENV);
+          console.log('[AUTH:DEBUG] NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
+          console.log('[AUTH:DEBUG] Has NEXTAUTH_SECRET:', !!process.env.NEXTAUTH_SECRET);
+          
           console.log('[AUTH] Authorizing user with credentials', { 
             email: credentials?.email,
             hasPassword: !!credentials?.password,
@@ -57,13 +79,26 @@ export const authOptions: AuthOptions = {
             return null
           }
 
+          console.log('[AUTH:DEBUG] User roles before return:');
+          console.log('Type of roles:', typeof result.data.roles);
+          console.log('Is array:', Array.isArray(result.data.roles));
+          console.log('Roles value:', JSON.stringify(result.data.roles, null, 2));
+          
+          // Check for admin role
+          const hasAdmin = result.data.roles.some((role: any) => {
+            if (typeof role === 'string') return role === 'admin';
+            return role && typeof role === 'object' && role.name === 'admin';
+          });
+          
+          console.log('[AUTH:DEBUG] Has admin role:', hasAdmin);
+
           console.log('[AUTH] User authenticated successfully', {
             id: result.data.id,
             email: result.data.email,
             roles: result.data.roles
           });
 
-          // Return user object
+          // Return user object - ENSURE ROLES IS SERIALIZABLE
           return {
             id: result.data.id,
             email: result.data.email,
@@ -71,7 +106,7 @@ export const authOptions: AuthOptions = {
             roles: result.data.roles || [],
           }
         } catch (error) {
-          console.error('[AUTH] Authentication error:', error)
+          console.error('[AUTH:DEBUG] Authentication error in authorize():', error)
           return null
         }
       },
@@ -80,12 +115,13 @@ export const authOptions: AuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      console.log('[AUTH:JWT] Processing JWT', { 
-        hasUser: !!user, 
-        tokenBefore: { ...token, sub: token.sub } 
-      });
+      console.log('[AUTH:DEBUG] ===== jwt() callback called =====');
+      console.log('[AUTH:JWT:DEBUG] Token before:', safeLog('token', {...token}));
+      console.log('[AUTH:JWT:DEBUG] User provided:', !!user);
       
       if (user) {
+        console.log('[AUTH:JWT:DEBUG] User data:', safeLog('user', user));
+        
         const customUser = user as CustomUser
         token.id = customUser.id
         token.email = customUser.email
@@ -95,17 +131,18 @@ export const authOptions: AuthOptions = {
         console.log('[AUTH:JWT] Updated token with user data', {
           id: token.id,
           email: token.email,
-          roles: token.roles
+          roles: JSON.stringify(token.roles)
         });
       }
+      
+      console.log('[AUTH:JWT:DEBUG] Final token to be encoded:', safeLog('final token', {...token}));
       return token
     },
 
     async session({ session, token }) {
-      console.log('[AUTH:SESSION] Processing session', { 
-        hasUser: !!session.user,
-        tokenId: token.id
-      });
+      console.log('[AUTH:DEBUG] ===== session() callback called =====');
+      console.log('[AUTH:SESSION:DEBUG] Building session from token:', safeLog('token', {...token}));
+      console.log('[AUTH:SESSION:DEBUG] Initial session:', safeLog('session', {...session}));
       
       if (session.user) {
         session.user.id = token.id
@@ -113,10 +150,15 @@ export const authOptions: AuthOptions = {
         session.user.name = token.name
         session.user.roles = token.roles || []
         
-        console.log('[AUTH:SESSION] Updated session with token data', {
-          id: session.user.id,
-          email: session.user.email
+        console.log('[AUTH:SESSION:DEBUG] Updated session.user:', safeLog('session.user', {...session.user}));
+        
+        // Check for admin role
+        const hasAdmin = session.user.roles.some((role: any) => {
+          if (typeof role === 'string') return role === 'admin';
+          return role && typeof role === 'object' && role.name === 'admin';
         });
+        
+        console.log('[AUTH:SESSION:DEBUG] Session has admin role:', hasAdmin);
       }
       return session
     },
