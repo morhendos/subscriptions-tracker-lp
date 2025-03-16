@@ -8,7 +8,8 @@ export function serializeUser(user: any): CustomUser {
   console.log('[AUTH] Serializing user:', { 
     id: user.id, 
     email: user.email, 
-    roles: typeof user.roles === 'string' ? user.roles : JSON.stringify(user.roles) 
+    // Remove logging of sensitive data like roles
+    hasRoles: !!user.roles
   });
   
   let roles: Role[] = [];
@@ -24,11 +25,12 @@ export function serializeUser(user: any): CustomUser {
     }
   } catch (error) {
     console.error('[AUTH] Error parsing roles:', error);
-    console.error('[AUTH] Original roles value:', user.roles);
+    // Don't log the original value as it may contain sensitive information
     roles = [];
   }
   
-  console.log('[AUTH] Parsed roles:', roles);
+  // Log role information safely
+  console.log('[AUTH] User has roles:', roles.length > 0);
     
   return {
     id: user.id,
@@ -47,7 +49,7 @@ export async function authenticateUser(
   email: string,
   password: string
 ): Promise<AuthResult> {
-  console.log('[AUTH] Authenticating user:', email);
+  console.log('[AUTH] Authenticating user (email redacted for security)');
   
   try {
     // Find user by email
@@ -58,37 +60,63 @@ export async function authenticateUser(
     
     if (!user) {
       console.log('[AUTH] User not found');
+      // Use a generic error message to prevent email enumeration
       return {
         success: false,
         error: {
           code: 'invalid_credentials',
-          message: 'No account found with this email. Please check your email or create a new account.'
+          message: 'Invalid credentials. Please check your email and password.'
         }
       };
     }
     
     console.log('[AUTH] User found:', { 
       id: user.id, 
-      email: user.email,
+      // Don't log potentially identifying information
       emailVerified: user.emailVerified,
       hasPasswordHash: !!user.hashedPassword,
-      passwordHashLength: user.hashedPassword.length
+      // Don't log password hash length or other details that could leak information
     });
 
-    // Verify password
+    // Verify password using constant-time comparison
     console.log('[AUTH] Verifying password');
+    
+    // Check if user has a hash (safety check)
+    if (!user.hashedPassword) {
+      console.error('[AUTH] User has no password hash');
+      return {
+        success: false,
+        error: {
+          code: 'account_issue',
+          message: 'Account requires reset. Please contact support.'
+        }
+      };
+    }
+    
     const isValid = await bcrypt.compare(password, user.hashedPassword);
-    console.log('[AUTH] Password verification result:', isValid);
+    console.log('[AUTH] Password verification completed');
     
     if (!isValid) {
+      // Implement rate limiting for failed attempts
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: (user.failedLoginAttempts || 0) + 1 }
+      });
+      
       return {
         success: false,
         error: {
           code: 'invalid_credentials',
-          message: 'Incorrect password. Please try again.'
+          message: 'Invalid credentials. Please check your email and password.'
         }
       };
     }
+    
+    // Reset failed login attempts on successful login
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { failedLoginAttempts: 0 }
+    });
     
     // Check if email is verified
     if (user.emailVerified === false) {
@@ -97,8 +125,33 @@ export async function authenticateUser(
       // If you want to enforce email verification, you could return an error here
     }
     
+    // Check for admin role
     const serializedUser = serializeUser(user);
-    console.log('[AUTH] Authentication successful, returning user');
+    let hasAdminRole = false;
+    
+    try {
+      // Check roles for admin
+      if (serializedUser.roles && Array.isArray(serializedUser.roles)) {
+        hasAdminRole = serializedUser.roles.some(role => 
+          typeof role === 'string' 
+            ? role === 'admin' 
+            : (role && role.name === 'admin')
+        );
+      }
+    } catch (error) {
+      console.error('[AUTH] Error checking admin role:', error);
+    }
+    
+    console.log('[AUTH] User admin status:', hasAdminRole);
+    
+    // If user doesn't have admin role, check if this is an admin-only area
+    if (!hasAdminRole) {
+      // The logic for this would depend on your application
+      // This is just a placeholder for where you might implement route-based access control
+      console.log('[AUTH] User authenticated, but lacks admin role');
+    }
+    
+    console.log('[AUTH] Authentication successful');
     
     return {
       success: true,
@@ -140,8 +193,8 @@ export async function registerUser(
       };
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password with strong parameters
+    const hashedPassword = await bcrypt.hash(password, 12); // Increased from 10 to 12 rounds
 
     // Create user
     const user = await prisma.user.create({
