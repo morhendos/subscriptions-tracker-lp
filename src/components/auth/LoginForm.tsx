@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
+import { hashPasswordForTransit } from '@/lib/auth/client-auth';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -19,6 +20,14 @@ export default function LoginForm() {
     email: '',
     password: '',
   });
+  const [isSecure, setIsSecure] = useState(true);
+
+  // Check if we're on HTTPS to show a security indicator
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsSecure(window.location.protocol === 'https:' || window.location.hostname === 'localhost');
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -38,7 +47,7 @@ export default function LoginForm() {
     setDebugInfo(null);
 
     try {
-      // Log attempt
+      // Log attempt (without password)
       console.log(`Attempting to sign in with email: ${formData.email}`);
       
       // Validate form data
@@ -50,15 +59,26 @@ export default function LoginForm() {
         return;
       }
 
-      // Call NextAuth signIn
+      // Get the current password
+      const plainPassword = formData.password;
+      
+      // Hash password for transmission
+      const hashedPassword = process.env.NODE_ENV === 'production' 
+        ? hashPasswordForTransit(plainPassword)
+        : plainPassword; // In development, we might keep it simple
+
+      // Call NextAuth signIn with hashed password
       const result = await signIn('credentials', {
         redirect: false,
         email: formData.email,
-        password: formData.password,
+        password: hashedPassword,
       });
       
-      console.log('Auth result:', result);
-      setDebugInfo(`Auth attempt result: ${JSON.stringify(result)}`);
+      // Debug info (without showing password)
+      if (result) {
+        console.log('Auth result:', { ok: result.ok, error: result.error, status: result.status });
+        setDebugInfo(`Auth attempt result: { ok: ${result.ok}, status: ${result.status || 'unknown'} }`);
+      }
 
       if (result?.error) {
         let errorMessage: string;
@@ -98,6 +118,13 @@ export default function LoginForm() {
       {error && (
         <div className="mb-4 p-3 bg-red-900/50 border border-red-600 text-red-200 rounded">
           {error}
+        </div>
+      )}
+      
+      {!isSecure && (
+        <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-600 text-yellow-200 rounded text-xs">
+          <strong>Security Warning:</strong><br />
+          You are using an insecure connection. For your security, consider using HTTPS.
         </div>
       )}
       
