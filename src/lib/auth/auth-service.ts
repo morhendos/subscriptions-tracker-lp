@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../prisma';
 import { Prisma } from '@prisma/client';
 import { CustomUser, Role, AuthResult } from '@/types/auth';
+import crypto from 'crypto';
 
 // Helper function to serialize user data
 export function serializeUser(user: any): CustomUser {
@@ -40,6 +41,28 @@ export function serializeUser(user: any): CustomUser {
     updatedAt: user.updatedAt,
     failedLoginAttempts: user.failedLoginAttempts || 0
   };
+}
+
+// Check if the password is in hashed transit format
+function isHashedPassword(password: string): boolean {
+  // Transit-hashed passwords have format: timestamp:hash
+  return password.includes(':') && !isNaN(Number(password.split(':')[0]));
+}
+
+// Verify a transit-hashed password
+async function verifyTransitHash(transitHash: string, storedHash: string): Promise<boolean> {
+  try {
+    // Parse the transit hash
+    const [salt, hash] = transitHash.split(':');
+    
+    // We need to recreate the plaintext (which we can't), so we always return false
+    // In a real implementation, we would need a server-side secret to recreate the hash
+    // This is a placeholder for future enhancement
+    return false;
+  } catch (error) {
+    console.error('[AUTH] Error verifying transit hash:', error);
+    return false;
+  }
 }
 
 // Authenticate a user with email and password
@@ -88,7 +111,26 @@ export async function authenticateUser(
     }
 
     console.log('[AUTH] Verifying password');
-    const isValid = await bcrypt.compare(password, user.hashedPassword);
+    
+    let isValid = false;
+    
+    // Check if the password is a transit hash
+    if (isHashedPassword(password)) {
+      console.log('[AUTH] Detected client-side hashed password');
+      // This is a placeholder - for now, we still need to verify the original password
+      // since we don't have the server-side implementation to verify transit hashes yet
+      
+      // In production, we would implement transit hash verification
+      // isValid = await verifyTransitHash(password, user.hashedPassword);
+      
+      // For now, we'll just return false to force the user to use plaintext
+      // until we implement the server-side verification
+      isValid = false;
+    } else {
+      // Standard bcrypt comparison
+      isValid = await bcrypt.compare(password, user.hashedPassword);
+    }
+    
     console.log('[AUTH] Password verification result:', isValid);
     
     if (!isValid) {
@@ -151,8 +193,18 @@ export async function registerUser(
       };
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password - handle transit hashed passwords
+    let hashedPassword: string;
+    
+    if (isHashedPassword(password)) {
+      // If it's already hashed for transit, we should re-hash it properly for storage
+      // For now, just use the plaintext part (not recommended for production)
+      // In a real implementation, we would need a server-side secret to recreate the hash
+      hashedPassword = await bcrypt.hash(password, 10);
+    } else {
+      // Standard password hashing
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
 
     // Create user
     const user = await prisma.user.create({
