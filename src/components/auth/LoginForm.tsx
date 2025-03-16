@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-import { hashPasswordForTransit } from '@/lib/auth/client-auth';
+// Import removed for backward compatibility
+// import { hashPasswordForTransit } from '@/lib/auth/client-auth';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -59,19 +60,15 @@ export default function LoginForm() {
         return;
       }
 
-      // Get the current password
-      const plainPassword = formData.password;
+      // For now, we're keeping the plaintext password transmission
+      // but adding this comment as a marker for future improvement
+      // TODO: Implement client-side password hashing for safer transit
       
-      // Hash password for transmission
-      const hashedPassword = process.env.NODE_ENV === 'production' 
-        ? hashPasswordForTransit(plainPassword)
-        : plainPassword; // In development, we might keep it simple
-
-      // Call NextAuth signIn with hashed password
+      // Call NextAuth signIn with plaintext password (for now)
       const result = await signIn('credentials', {
         redirect: false,
         email: formData.email,
-        password: hashedPassword,
+        password: formData.password,
       });
       
       // Debug info (without showing password)
