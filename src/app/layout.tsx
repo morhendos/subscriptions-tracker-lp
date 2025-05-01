@@ -142,6 +142,7 @@ export default function RootLayout({
           googleAnalyticsId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
           microsoftClarityId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID}
         />
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="cxHC/uQuJEsWpUQAm39QLA" async></script>
       </head>
       <body className={inter.className}>
         {/* Wrap the entire app with AuthProvider for NextAuth */}
